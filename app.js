@@ -209,6 +209,66 @@ function processImage(img, targetHeight, targetWidth, maxColors) {
 let currentResult = null;
 let showCodes = true;
 let showGridLines = true;
+let aspectLinked = true;
+let imageAspectRatio = null;
+let lastEditedDimension = 'height';
+
+// Size presets for common needlepoint projects
+const SIZE_PRESETS = [
+  { name: 'Coaster', width: 50, height: 50 },
+  { name: 'Ornament', width: 40, height: 50 },
+  { name: 'Pillow', width: 120, height: 120 },
+  { name: 'Wall Art', width: 100, height: 125 }
+];
+
+// Find the preset that best matches the image aspect ratio
+function findBestPreset(imgAspectRatio) {
+  let bestPreset = null;
+  let bestDiff = Infinity;
+  
+  for (const preset of SIZE_PRESETS) {
+    const presetAspect = preset.width / preset.height;
+    const diff = Math.abs(imgAspectRatio - presetAspect);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestPreset = preset;
+    }
+  }
+  
+  return bestPreset;
+}
+
+// Estimate color complexity by sampling the image
+function estimateColorComplexity(img) {
+  const canvas = document.createElement('canvas');
+  const size = 50; // Sample at 50x50 for speed
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  
+  ctx.drawImage(img, 0, 0, size, size);
+  const imageData = ctx.getImageData(0, 0, size, size);
+  const data = imageData.data;
+  
+  // Count unique colors (quantized to reduce noise)
+  const colorSet = new Set();
+  for (let i = 0; i < data.length; i += 4) {
+    // Quantize to 32 levels per channel to group similar colors
+    const r = Math.floor(data[i] / 8);
+    const g = Math.floor(data[i + 1] / 8);
+    const b = Math.floor(data[i + 2] / 8);
+    colorSet.add(`${r},${g},${b}`);
+  }
+  
+  const uniqueColors = colorSet.size;
+  
+  // Map unique colors to suggested max colors
+  if (uniqueColors < 30) return 10;
+  if (uniqueColors < 60) return 15;
+  if (uniqueColors < 100) return 20;
+  if (uniqueColors < 150) return 25;
+  return 30;
+}
 
 function getTextColor(hex) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -334,7 +394,6 @@ function renderGridToCanvas(cellSize) {
   const { grid, colorMap } = currentResult;
   const rows = grid.length;
   const cols = grid[0].length;
-  const borderWidth = showGridLines ? 1 : 0;
   
   const canvas = document.createElement('canvas');
   canvas.width = cols * cellSize;
@@ -513,20 +572,8 @@ function loadProject(project) {
   document.getElementById('patternInfo').textContent = 
     `${project.grid.length} rows × ${project.grid[0].length} columns • ${currentResult.numColors} colors`;
   
-  // Use thumbnail as preview (original image not stored to save space)
-  document.getElementById('originalPreview').src = project.thumbnail;
-  document.getElementById('previewSection').classList.add('visible');
-  
-  // Render quantized preview
-  const quantizedCanvas = document.getElementById('quantizedPreview');
-  const img = new Image();
-  img.onload = () => {
-    quantizedCanvas.width = img.width;
-    quantizedCanvas.height = img.height;
-    quantizedCanvas.getContext('2d').drawImage(img, 0, 0);
-  };
-  img.src = project.quantizedImage;
-  
+  // Hide upload section, show result sections
+  document.querySelector('.upload-section').classList.add('hidden');
   document.getElementById('controls').classList.add('visible');
   document.getElementById('resultSection').classList.add('visible');
   document.getElementById('downloadSection').classList.add('visible');
@@ -561,10 +608,181 @@ document.addEventListener('DOMContentLoaded', () => {
   let loadedImage = null;
   let currentFileName = 'Untitled';
   
+  const heightInput = document.getElementById('heightInput');
+  const widthInput = document.getElementById('widthInput');
+  const aspectLinkBtn = document.getElementById('aspectLinkBtn');
+  const colorsInput = document.getElementById('colorsInput');
+  
+  // File upload elements
+  const fileDropzone = document.getElementById('fileDropzone');
+  const imageSelectedRow = document.getElementById('imageSelectedRow');
+  const imagePreview = document.getElementById('imagePreview');
+  const previewImg = document.getElementById('previewImg');
+  const selectedFilename = document.getElementById('selectedFilename');
+  const changeFileBtn = document.getElementById('changeFileBtn');
+  
+  // Click on dropzone triggers file input
+  fileDropzone.addEventListener('click', () => {
+    imageInput.click();
+  });
+  
+  // Change file button triggers file input
+  changeFileBtn.addEventListener('click', () => {
+    imageInput.click();
+  });
+  
+  // Drag and drop handlers
+  fileDropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fileDropzone.classList.add('dragover');
+  });
+  
+  fileDropzone.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fileDropzone.classList.add('dragover');
+  });
+  
+  fileDropzone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fileDropzone.classList.remove('dragover');
+  });
+  
+  fileDropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fileDropzone.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.startsWith('image/')) {
+      // Create a new FileList-like object and assign to input
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(files[0]);
+      imageInput.files = dataTransfer.files;
+      
+      // Trigger the change event manually
+      imageInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+  
+  // Step group elements
+  const presetsStep = document.getElementById('presetsStep');
+  const dimensionsStep = document.getElementById('dimensionsStep');
+  const colorsStep = document.getElementById('colorsStep');
+  const convertStep = document.getElementById('convertStep');
+  const presetBtns = document.querySelectorAll('.preset-btn');
+  
+  // Select a preset and update dimensions
+  function selectPreset(btn) {
+    // Update active state
+    presetBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // If it's not the custom preset, update dimensions
+    if (!btn.hasAttribute('data-preset')) {
+      const height = parseInt(btn.dataset.height);
+      const width = parseInt(btn.dataset.width);
+      
+      heightInput.value = height;
+      widthInput.value = width;
+      
+      // If aspect linked, recalculate based on image aspect ratio
+      if (aspectLinked && imageAspectRatio) {
+        lastEditedDimension = 'height';
+        recalculateDimensions();
+      } else {
+        heightInput.classList.remove('auto-calculated');
+        widthInput.classList.remove('auto-calculated');
+      }
+    }
+  }
+  
+  // Mark custom preset as active when user edits dimensions
+  function markCustomPreset() {
+    presetBtns.forEach(b => b.classList.remove('active'));
+    const customBtn = document.querySelector('.preset-btn[data-preset="custom"]');
+    if (customBtn) customBtn.classList.add('active');
+  }
+  
+  // Preset button click handlers
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => selectPreset(btn));
+  });
+  
+  // Helper to clamp value between min and max
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+  
+  // Recalculate dimensions based on aspect ratio and last edited field
+  function recalculateDimensions() {
+    if (!imageAspectRatio) return;
+    
+    const height = parseInt(heightInput.value) || 72;
+    const width = parseInt(widthInput.value) || 60;
+    
+    if (lastEditedDimension === 'height') {
+      // Height is the driver, calculate width
+      const newWidth = clamp(Math.round(height * imageAspectRatio), 10, 200);
+      widthInput.value = newWidth;
+      widthInput.classList.add('auto-calculated');
+      heightInput.classList.remove('auto-calculated');
+    } else {
+      // Width is the driver, calculate height
+      const newHeight = clamp(Math.round(width / imageAspectRatio), 10, 200);
+      heightInput.value = newHeight;
+      heightInput.classList.add('auto-calculated');
+      widthInput.classList.remove('auto-calculated');
+    }
+  }
+  
+  // Height input handler
+  heightInput.addEventListener('input', () => {
+    lastEditedDimension = 'height';
+    markCustomPreset();
+    if (aspectLinked && imageAspectRatio) {
+      recalculateDimensions();
+    } else {
+      heightInput.classList.remove('auto-calculated');
+    }
+  });
+  
+  // Width input handler
+  widthInput.addEventListener('input', () => {
+    lastEditedDimension = 'width';
+    markCustomPreset();
+    if (aspectLinked && imageAspectRatio) {
+      recalculateDimensions();
+    } else {
+      widthInput.classList.remove('auto-calculated');
+    }
+  });
+  
   // Load existing projects on startup
   renderProjectList();
   
   clearAllBtn.addEventListener('click', clearAllProjects);
+  
+  // Aspect link toggle handler
+  aspectLinkBtn.addEventListener('click', () => {
+    aspectLinked = !aspectLinked;
+    aspectLinkBtn.classList.toggle('linked', aspectLinked);
+    
+    if (aspectLinked) {
+      aspectLinkBtn.title = 'Link dimensions (maintain aspect ratio)';
+      // Recalculate when linking
+      if (imageAspectRatio) {
+        recalculateDimensions();
+      }
+    } else {
+      aspectLinkBtn.title = 'Dimensions unlinked';
+      // Remove auto-calculated styling from both
+      heightInput.classList.remove('auto-calculated');
+      widthInput.classList.remove('auto-calculated');
+    }
+  });
   
   newProjectBtn.addEventListener('click', () => {
     // Reset everything for a new project
@@ -573,24 +791,35 @@ document.addEventListener('DOMContentLoaded', () => {
     currentFileName = 'Untitled';
     currentResult = null;
     convertBtn.disabled = true;
+    imageAspectRatio = null;
     
-    // Hide all sections
-    document.getElementById('previewSection').classList.remove('visible');
+    // Hide all step groups
+    presetsStep.classList.remove('visible');
+    dimensionsStep.classList.remove('visible');
+    colorsStep.classList.remove('visible');
+    convertStep.classList.remove('visible');
+    
+    // Clear preset selection
+    presetBtns.forEach(b => b.classList.remove('active'));
+    
+    // Reset to dropzone state
+    imageSelectedRow.classList.remove('visible');
+    previewImg.src = '';
+    selectedFilename.textContent = '';
+    fileDropzone.classList.remove('hidden');
+    
+    // Show upload section, hide result sections
+    document.querySelector('.upload-section').classList.remove('hidden');
     document.getElementById('controls').classList.remove('visible');
     document.getElementById('resultSection').classList.remove('visible');
     document.getElementById('downloadSection').classList.remove('visible');
     
     // Clear content
-    document.getElementById('originalPreview').src = '';
-    document.getElementById('quantizedPreview').getContext('2d').clearRect(0, 0, 9999, 9999);
     document.getElementById('grid').innerHTML = '';
     document.getElementById('legend').innerHTML = '';
     
     // Clear active project highlight
     document.querySelectorAll('.project-item').forEach(el => el.classList.remove('active'));
-    
-    // Focus on file input
-    imageInput.click();
   });
   
   imageInput.addEventListener('change', (e) => {
@@ -600,13 +829,20 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     
+    // Hide step groups (will be revealed after image loads)
+    presetsStep.classList.remove('visible');
+    dimensionsStep.classList.remove('visible');
+    colorsStep.classList.remove('visible');
+    convertStep.classList.remove('visible');
+    presetBtns.forEach(b => b.classList.remove('active'));
+    convertBtn.disabled = true;
+    
     // Reset UI - hide results until convert is clicked
     document.getElementById('controls').classList.remove('visible');
     document.getElementById('resultSection').classList.remove('visible');
     document.getElementById('downloadSection').classList.remove('visible');
     document.getElementById('grid').innerHTML = '';
     document.getElementById('legend').innerHTML = '';
-    document.getElementById('quantizedPreview').getContext('2d').clearRect(0, 0, 9999, 9999);
     currentResult = null;
     
     // Clear active project highlight
@@ -621,11 +857,61 @@ document.addEventListener('DOMContentLoaded', () => {
       img.onload = () => {
         loadedImage = img;
         loadedImage.dataUrl = event.target.result; // Store for saving
-        convertBtn.disabled = false;
         
-        // Show original preview
-        document.getElementById('originalPreview').src = event.target.result;
-        document.getElementById('previewSection').classList.add('visible');
+        // Calculate and store aspect ratio (width / height)
+        imageAspectRatio = img.width / img.height;
+        
+        // Find best matching preset and auto-select it
+        const bestPreset = findBestPreset(imageAspectRatio);
+        const bestPresetBtn = Array.from(presetBtns).find(btn => 
+          parseInt(btn.dataset.width) === bestPreset.width && 
+          parseInt(btn.dataset.height) === bestPreset.height
+        );
+        
+        if (bestPresetBtn) {
+          // Set dimensions from preset
+          heightInput.value = bestPreset.height;
+          widthInput.value = bestPreset.width;
+          
+          // If aspect linked, adjust for actual image aspect ratio
+          if (aspectLinked) {
+            lastEditedDimension = 'height';
+            recalculateDimensions();
+          }
+        }
+        
+        // Estimate color complexity and set default
+        const suggestedColors = estimateColorComplexity(img);
+        colorsInput.value = suggestedColors;
+        
+        // Switch from dropzone to selected state
+        fileDropzone.classList.add('hidden');
+        previewImg.src = event.target.result;
+        selectedFilename.textContent = currentFileName;
+        imageSelectedRow.classList.add('visible');
+        
+        // Reveal steps sequentially with delays
+        setTimeout(() => {
+          presetsStep.classList.add('visible');
+          // Auto-select best preset button
+          if (bestPresetBtn) {
+            presetBtns.forEach(b => b.classList.remove('active'));
+            bestPresetBtn.classList.add('active');
+          }
+        }, 100);
+        
+        setTimeout(() => {
+          dimensionsStep.classList.add('visible');
+        }, 250);
+        
+        setTimeout(() => {
+          colorsStep.classList.add('visible');
+        }, 400);
+        
+        setTimeout(() => {
+          convertStep.classList.add('visible');
+          convertBtn.disabled = false;
+        }, 550);
       };
       img.src = event.target.result;
     };
@@ -647,18 +933,12 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         currentResult = processImage(loadedImage, height, width, maxColors);
         
-        // Update quantized preview
-        const quantizedCanvas = document.getElementById('quantizedPreview');
-        const processingCanvas = document.getElementById('processingCanvas');
-        quantizedCanvas.width = processingCanvas.width;
-        quantizedCanvas.height = processingCanvas.height;
-        quantizedCanvas.getContext('2d').drawImage(processingCanvas, 0, 0);
-        
         // Update pattern info
         document.getElementById('patternInfo').textContent = 
           `${height} rows × ${width} columns • ${currentResult.numColors} colors`;
         
-        // Show result sections
+        // Hide upload section and show result sections
+        document.querySelector('.upload-section').classList.add('hidden');
         document.getElementById('controls').classList.add('visible');
         document.getElementById('resultSection').classList.add('visible');
         document.getElementById('downloadSection').classList.add('visible');
