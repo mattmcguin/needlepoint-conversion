@@ -123,37 +123,43 @@
       <div class="step-group" id="presetsStep">
         <label>Project Size</label>
         <div class="size-presets" id="sizePresets">
-          <button type="button" class="preset-btn" data-height="50" data-width="50">Coaster (50×50)</button>
-          <button type="button" class="preset-btn" data-height="50" data-width="40">Ornament (40×50)</button>
-          <button type="button" class="preset-btn" data-height="120" data-width="120">Pillow (120×120)</button>
-          <button type="button" class="preset-btn" data-height="125" data-width="100">Wall Art (100×125)</button>
+          <button type="button" class="preset-btn" data-height="72" data-width="72" data-name="Coaster">Coaster (4" × 4")</button>
+          <button type="button" class="preset-btn" data-height="72" data-width="54" data-name="Ornament">Ornament (3" × 4")</button>
+          <button type="button" class="preset-btn" data-height="144" data-width="144" data-name="Pillow">Pillow (8" × 8")</button>
+          <button type="button" class="preset-btn" data-height="144" data-width="108" data-name="Wall Art">Wall Art (6" × 8")</button>
           <button type="button" class="preset-btn" data-preset="custom">Custom</button>
+        </div>
+        <p class="preset-note" id="presetNote">Sizes that would stretch or distort your image have been disabled. Use the Custom button to set your own dimensions.</p>
+      </div>
+      
+      <div class="step-group" id="meshStep">
+        <label>Canvas Mesh</label>
+        <div class="mesh-options">
+          <button type="button" class="mesh-btn" data-mesh="12">12 mesh</button>
+          <button type="button" class="mesh-btn active" data-mesh="18">18 mesh</button>
         </div>
       </div>
       
       <div class="step-group" id="dimensionsStep">
         <label>Dimensions</label>
+        <div class="unit-toggle">
+          <button type="button" class="unit-btn" data-unit="stitches">Stitches</button>
+          <button type="button" class="unit-btn active" data-unit="inches">Inches</button>
+        </div>
         <div class="dimensions-row">
           <div class="dimension-input">
-            <span class="dimension-label">Height (rows)</span>
-            <input type="number" id="heightInput" value="72" min="10" max="200">
+            <span class="dimension-label" id="widthLabel">Width (inches)</span>
+            <input type="number" id="widthInput" value="4" min="1" max="20" step="0.5">
           </div>
-          <button type="button" class="aspect-link-btn linked" id="aspectLinkBtn" title="Link dimensions (maintain aspect ratio)">
-            <svg class="link-icon" viewBox="0 0 24 24" width="20" height="20">
-              <path class="chain-link" d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-              <path class="chain-link" d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-            </svg>
-            <svg class="unlink-icon" viewBox="0 0 24 24" width="20" height="20">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-              <line x1="2" y1="2" x2="22" y2="22"/>
-            </svg>
-          </button>
           <div class="dimension-input">
-            <span class="dimension-label">Width (cols)</span>
-            <input type="number" id="widthInput" value="60" min="10" max="200">
+            <span class="dimension-label" id="heightLabel">Height (inches)</span>
+            <input type="number" id="heightInput" value="4" min="1" max="20" step="0.5">
           </div>
         </div>
+        <label class="aspect-ratio-checkbox">
+          <input type="checkbox" id="aspectLinkCheckbox" checked>
+          <span>Lock aspect ratio</span>
+        </label>
       </div>
       
       <div class="step-group" id="colorsStep">
@@ -168,6 +174,19 @@
       <div class="status" id="status"></div>
     </div>
     
+    <!-- Result Section -->
+    <div class="result-section" id="resultSection">
+      <div class="result-header">
+        <p class="pattern-info" id="patternInfo"></p>
+        <button id="editProjectBtn" class="edit-settings-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          Edit Settings
+        </button>
+      </div>
+    
     <!-- Controls -->
     <div class="controls" id="controls">
       <label>
@@ -177,10 +196,6 @@
       <button id="toggleCodes">Hide Codes</button>
       <button id="toggleGrid">Toggle Grid Lines</button>
     </div>
-    
-    <!-- Result Section -->
-    <div class="result-section" id="resultSection">
-      <p class="pattern-info" id="patternInfo"></p>
       
       <div class="download-section" id="downloadSection">
         <button class="download-btn" id="downloadGrid">Download Grid CSV</button>

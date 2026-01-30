@@ -211,15 +211,28 @@ let showCodes = true;
 let showGridLines = true;
 let aspectLinked = true;
 let imageAspectRatio = null;
-let lastEditedDimension = 'height';
+let lastEditedDimension = 'width';
+let meshCount = 18;
+let unitMode = 'inches'; // 'inches' or 'stitches'
+let currentProjectId = null;
 
-// Size presets for common needlepoint projects
+// Size presets for common needlepoint projects (in stitches at 18 mesh)
 const SIZE_PRESETS = [
-  { name: 'Coaster', width: 50, height: 50 },
-  { name: 'Ornament', width: 40, height: 50 },
-  { name: 'Pillow', width: 120, height: 120 },
-  { name: 'Wall Art', width: 100, height: 125 }
+  { name: 'Coaster', width: 72, height: 72 },
+  { name: 'Ornament', width: 54, height: 72 },
+  { name: 'Pillow', width: 144, height: 144 },
+  { name: 'Wall Art', width: 108, height: 144 }
 ];
+
+// Convert stitches to inches based on current mesh count
+function stitchesToInches(stitches) {
+  return Math.round((stitches / meshCount) * 10) / 10;
+}
+
+// Convert inches to stitches based on current mesh count
+function inchesToStitches(inches) {
+  return Math.round(inches * meshCount);
+}
 
 // Find the preset that best matches the image aspect ratio
 function findBestPreset(imgAspectRatio) {
@@ -568,15 +581,36 @@ function loadProject(project) {
     numColors: Object.keys(project.colorMap).length
   };
   
-  // Update UI
+  // Set current project ID for editing
+  currentProjectId = project.id;
+  
+  // Restore mesh count if available
+  if (project.meshCount) {
+    meshCount = project.meshCount;
+  }
+  
+  // Update UI with pattern info
+  const height = project.grid.length;
+  const width = project.grid[0].length;
+  const projectMesh = project.meshCount || 18;
+  const widthInches = Math.round((width / projectMesh) * 10) / 10;
+  const heightInches = Math.round((height / projectMesh) * 10) / 10;
   document.getElementById('patternInfo').textContent = 
-    `${project.grid.length} rows × ${project.grid[0].length} columns • ${currentResult.numColors} colors`;
+    `${height} rows × ${width} columns (${widthInches}" × ${heightInches}" at ${projectMesh} mesh) • ${currentResult.numColors} colors`;
   
   // Hide upload section, show result sections
   document.querySelector('.upload-section').classList.add('hidden');
   document.getElementById('controls').classList.add('visible');
   document.getElementById('resultSection').classList.add('visible');
   document.getElementById('downloadSection').classList.add('visible');
+  
+  // Show/hide edit button based on whether original image is available
+  const editBtn = document.getElementById('editProjectBtn');
+  if (project.originalImage) {
+    editBtn.style.display = '';
+  } else {
+    editBtn.style.display = 'none';
+  }
   
   renderGrid(parseInt(document.getElementById('cellSize').value));
   renderLegend();
@@ -610,8 +644,15 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const heightInput = document.getElementById('heightInput');
   const widthInput = document.getElementById('widthInput');
-  const aspectLinkBtn = document.getElementById('aspectLinkBtn');
+  const widthLabel = document.getElementById('widthLabel');
+  const heightLabel = document.getElementById('heightLabel');
+  const aspectLinkCheckbox = document.getElementById('aspectLinkCheckbox');
   const colorsInput = document.getElementById('colorsInput');
+  const editProjectBtn = document.getElementById('editProjectBtn');
+  
+  // Mesh and unit elements
+  const meshBtns = document.querySelectorAll('.mesh-btn');
+  const unitBtns = document.querySelectorAll('.unit-btn');
   
   // File upload elements
   const fileDropzone = document.getElementById('fileDropzone');
@@ -669,6 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Step group elements
   const presetsStep = document.getElementById('presetsStep');
+  const meshStep = document.getElementById('meshStep');
   const dimensionsStep = document.getElementById('dimensionsStep');
   const colorsStep = document.getElementById('colorsStep');
   const convertStep = document.getElementById('convertStep');
@@ -682,15 +724,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // If it's not the custom preset, update dimensions
     if (!btn.hasAttribute('data-preset')) {
-      const height = parseInt(btn.dataset.height);
-      const width = parseInt(btn.dataset.width);
+      const heightStitches = parseInt(btn.dataset.height);
+      const widthStitches = parseInt(btn.dataset.width);
       
-      heightInput.value = height;
-      widthInput.value = width;
+      // Convert to current unit mode
+      if (unitMode === 'inches') {
+        widthInput.value = stitchesToInches(widthStitches);
+        heightInput.value = stitchesToInches(heightStitches);
+      } else {
+        widthInput.value = widthStitches;
+        heightInput.value = heightStitches;
+      }
       
       // If aspect linked, recalculate based on image aspect ratio
       if (aspectLinked && imageAspectRatio) {
-        lastEditedDimension = 'height';
+        lastEditedDimension = 'width';
         recalculateDimensions();
       } else {
         heightInput.classList.remove('auto-calculated');
@@ -720,18 +768,34 @@ document.addEventListener('DOMContentLoaded', () => {
   function recalculateDimensions() {
     if (!imageAspectRatio) return;
     
-    const height = parseInt(heightInput.value) || 72;
-    const width = parseInt(widthInput.value) || 60;
+    const height = parseFloat(heightInput.value) || 4;
+    const width = parseFloat(widthInput.value) || 4;
+    
+    // Set min/max based on unit mode
+    const minVal = unitMode === 'inches' ? 1 : 10;
+    const maxVal = unitMode === 'inches' ? 20 : 360;
     
     if (lastEditedDimension === 'height') {
       // Height is the driver, calculate width
-      const newWidth = clamp(Math.round(height * imageAspectRatio), 10, 200);
+      let newWidth = height * imageAspectRatio;
+      if (unitMode === 'inches') {
+        newWidth = Math.round(newWidth * 10) / 10; // Round to 1 decimal
+      } else {
+        newWidth = Math.round(newWidth);
+      }
+      newWidth = clamp(newWidth, minVal, maxVal);
       widthInput.value = newWidth;
       widthInput.classList.add('auto-calculated');
       heightInput.classList.remove('auto-calculated');
     } else {
       // Width is the driver, calculate height
-      const newHeight = clamp(Math.round(width / imageAspectRatio), 10, 200);
+      let newHeight = width / imageAspectRatio;
+      if (unitMode === 'inches') {
+        newHeight = Math.round(newHeight * 10) / 10; // Round to 1 decimal
+      } else {
+        newHeight = Math.round(newHeight);
+      }
+      newHeight = clamp(newHeight, minVal, maxVal);
       heightInput.value = newHeight;
       heightInput.classList.add('auto-calculated');
       widthInput.classList.remove('auto-calculated');
@@ -765,23 +829,193 @@ document.addEventListener('DOMContentLoaded', () => {
   
   clearAllBtn.addEventListener('click', clearAllProjects);
   
-  // Aspect link toggle handler
-  aspectLinkBtn.addEventListener('click', () => {
-    aspectLinked = !aspectLinked;
-    aspectLinkBtn.classList.toggle('linked', aspectLinked);
+  // Aspect ratio checkbox handler
+  aspectLinkCheckbox.addEventListener('change', () => {
+    aspectLinked = aspectLinkCheckbox.checked;
     
-    if (aspectLinked) {
-      aspectLinkBtn.title = 'Link dimensions (maintain aspect ratio)';
-      // Recalculate when linking
-      if (imageAspectRatio) {
-        recalculateDimensions();
-      }
+    if (aspectLinked && imageAspectRatio) {
+      recalculateDimensions();
     } else {
-      aspectLinkBtn.title = 'Dimensions unlinked';
-      // Remove auto-calculated styling from both
       heightInput.classList.remove('auto-calculated');
       widthInput.classList.remove('auto-calculated');
     }
+  });
+  
+  // Update preset button labels based on current mesh count
+  function updatePresetLabels() {
+    presetBtns.forEach(btn => {
+      if (btn.hasAttribute('data-preset')) return; // Skip custom button
+      
+      const name = btn.dataset.name;
+      const widthStitches = parseInt(btn.dataset.width);
+      const heightStitches = parseInt(btn.dataset.height);
+      const widthInches = Math.round((widthStitches / meshCount) * 10) / 10;
+      const heightInches = Math.round((heightStitches / meshCount) * 10) / 10;
+      btn.textContent = `${name} (${widthInches}" × ${heightInches}")`;
+    });
+  }
+  
+  // Update preset buttons based on image aspect ratio - disable non-matching ones
+  function updatePresetAvailability() {
+    const presetNote = document.getElementById('presetNote');
+    
+    if (!imageAspectRatio) {
+      // No image loaded, enable all presets
+      presetBtns.forEach(btn => {
+        btn.disabled = false;
+      });
+      presetNote.classList.remove('visible');
+      return null;
+    }
+    
+    const tolerance = 0.15; // 15% tolerance
+    let bestMatch = null;
+    let bestDiff = Infinity;
+    let hasDisabled = false;
+    
+    presetBtns.forEach(btn => {
+      if (btn.hasAttribute('data-preset')) {
+        // Custom button is always enabled
+        btn.disabled = false;
+        return;
+      }
+      
+      const presetWidth = parseInt(btn.dataset.width);
+      const presetHeight = parseInt(btn.dataset.height);
+      const presetAspect = presetWidth / presetHeight;
+      const aspectDiff = Math.abs(imageAspectRatio - presetAspect) / presetAspect;
+      
+      if (aspectDiff <= tolerance) {
+        btn.disabled = false;
+        // Track the best matching preset
+        if (aspectDiff < bestDiff) {
+          bestDiff = aspectDiff;
+          bestMatch = btn;
+        }
+      } else {
+        btn.disabled = true;
+        hasDisabled = true;
+      }
+    });
+    
+    // Show/hide the note about disabled presets
+    if (hasDisabled) {
+      presetNote.classList.add('visible');
+    } else {
+      presetNote.classList.remove('visible');
+    }
+    
+    return bestMatch;
+  }
+  
+  // Select Custom preset with reasonable dimensions based on image
+  function selectCustomWithDefaults() {
+    const customBtn = document.querySelector('.preset-btn[data-preset="custom"]');
+    if (customBtn) {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      customBtn.classList.add('active');
+    }
+    
+    // Set reasonable default dimensions based on image aspect ratio
+    // Target approximately 4 inches on the shorter side at 18 mesh
+    const targetShortSide = 4; // inches
+    
+    if (unitMode === 'inches') {
+      if (imageAspectRatio >= 1) {
+        // Landscape or square
+        heightInput.value = targetShortSide;
+        widthInput.value = Math.round(targetShortSide * imageAspectRatio * 10) / 10;
+      } else {
+        // Portrait
+        widthInput.value = targetShortSide;
+        heightInput.value = Math.round(targetShortSide / imageAspectRatio * 10) / 10;
+      }
+    } else {
+      const targetStitches = inchesToStitches(targetShortSide);
+      if (imageAspectRatio >= 1) {
+        heightInput.value = targetStitches;
+        widthInput.value = Math.round(targetStitches * imageAspectRatio);
+      } else {
+        widthInput.value = targetStitches;
+        heightInput.value = Math.round(targetStitches / imageAspectRatio);
+      }
+    }
+    
+    heightInput.classList.remove('auto-calculated');
+    widthInput.classList.remove('auto-calculated');
+  }
+  
+  // Mesh button handlers
+  meshBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const oldMesh = meshCount;
+      meshCount = parseInt(btn.dataset.mesh);
+      meshBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Update preset labels with new mesh count
+      updatePresetLabels();
+      
+      // If in inches mode, no need to recalculate displayed values
+      // If in stitches mode, convert current values to new mesh equivalent
+      if (unitMode === 'stitches' && oldMesh !== meshCount) {
+        // Keep the physical size the same, update stitch counts
+        const currentWidthInches = parseInt(widthInput.value) / oldMesh;
+        const currentHeightInches = parseInt(heightInput.value) / oldMesh;
+        widthInput.value = Math.round(currentWidthInches * meshCount);
+        heightInput.value = Math.round(currentHeightInches * meshCount);
+      }
+    });
+  });
+  
+  // Update dimension labels based on unit mode
+  function updateDimensionLabels() {
+    if (unitMode === 'inches') {
+      widthLabel.textContent = 'Width (inches)';
+      heightLabel.textContent = 'Height (inches)';
+      widthInput.step = '0.5';
+      heightInput.step = '0.5';
+      widthInput.min = '1';
+      heightInput.min = '1';
+      widthInput.max = '20';
+      heightInput.max = '20';
+    } else {
+      widthLabel.textContent = 'Width (stitches)';
+      heightLabel.textContent = 'Height (stitches)';
+      widthInput.step = '1';
+      heightInput.step = '1';
+      widthInput.min = '10';
+      heightInput.min = '10';
+      widthInput.max = '360';
+      heightInput.max = '360';
+    }
+  }
+  
+  // Unit toggle handlers
+  unitBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const newUnit = btn.dataset.unit;
+      if (newUnit === unitMode) return;
+      
+      // Convert current values
+      const currentWidth = parseFloat(widthInput.value) || 4;
+      const currentHeight = parseFloat(heightInput.value) || 4;
+      
+      if (newUnit === 'inches') {
+        // Converting from stitches to inches
+        widthInput.value = stitchesToInches(currentWidth);
+        heightInput.value = stitchesToInches(currentHeight);
+      } else {
+        // Converting from inches to stitches
+        widthInput.value = inchesToStitches(currentWidth);
+        heightInput.value = inchesToStitches(currentHeight);
+      }
+      
+      unitMode = newUnit;
+      unitBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateDimensionLabels();
+    });
   });
   
   newProjectBtn.addEventListener('click', () => {
@@ -790,17 +1024,23 @@ document.addEventListener('DOMContentLoaded', () => {
     loadedImage = null;
     currentFileName = 'Untitled';
     currentResult = null;
+    currentProjectId = null;
     convertBtn.disabled = true;
     imageAspectRatio = null;
     
     // Hide all step groups
     presetsStep.classList.remove('visible');
+    meshStep.classList.remove('visible');
     dimensionsStep.classList.remove('visible');
     colorsStep.classList.remove('visible');
     convertStep.classList.remove('visible');
     
-    // Clear preset selection
-    presetBtns.forEach(b => b.classList.remove('active'));
+    // Clear preset selection and reset disabled states
+    presetBtns.forEach(b => {
+      b.classList.remove('active');
+      b.disabled = false;
+    });
+    document.getElementById('presetNote').classList.remove('visible');
     
     // Reset to dropzone state
     imageSelectedRow.classList.remove('visible');
@@ -831,11 +1071,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Hide step groups (will be revealed after image loads)
     presetsStep.classList.remove('visible');
+    meshStep.classList.remove('visible');
     dimensionsStep.classList.remove('visible');
     colorsStep.classList.remove('visible');
     convertStep.classList.remove('visible');
     presetBtns.forEach(b => b.classList.remove('active'));
     convertBtn.disabled = true;
+    currentProjectId = null;
     
     // Reset UI - hide results until convert is clicked
     document.getElementById('controls').classList.remove('visible');
@@ -861,23 +1103,30 @@ document.addEventListener('DOMContentLoaded', () => {
         // Calculate and store aspect ratio (width / height)
         imageAspectRatio = img.width / img.height;
         
-        // Find best matching preset and auto-select it
-        const bestPreset = findBestPreset(imageAspectRatio);
-        const bestPresetBtn = Array.from(presetBtns).find(btn => 
-          parseInt(btn.dataset.width) === bestPreset.width && 
-          parseInt(btn.dataset.height) === bestPreset.height
-        );
+        // Update preset availability based on image aspect ratio
+        const bestMatchingPreset = updatePresetAvailability();
         
-        if (bestPresetBtn) {
-          // Set dimensions from preset
-          heightInput.value = bestPreset.height;
-          widthInput.value = bestPreset.width;
+        if (bestMatchingPreset) {
+          // Set dimensions from the best matching preset
+          const presetWidth = parseInt(bestMatchingPreset.dataset.width);
+          const presetHeight = parseInt(bestMatchingPreset.dataset.height);
+          
+          if (unitMode === 'inches') {
+            widthInput.value = stitchesToInches(presetWidth);
+            heightInput.value = stitchesToInches(presetHeight);
+          } else {
+            widthInput.value = presetWidth;
+            heightInput.value = presetHeight;
+          }
           
           // If aspect linked, adjust for actual image aspect ratio
           if (aspectLinked) {
-            lastEditedDimension = 'height';
+            lastEditedDimension = 'width';
             recalculateDimensions();
           }
+        } else {
+          // No matching presets, will select custom with defaults
+          selectCustomWithDefaults();
         }
         
         // Estimate color complexity and set default
@@ -893,25 +1142,32 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reveal steps sequentially with delays
         setTimeout(() => {
           presetsStep.classList.add('visible');
-          // Auto-select best preset button
-          if (bestPresetBtn) {
-            presetBtns.forEach(b => b.classList.remove('active'));
-            bestPresetBtn.classList.add('active');
+          // Auto-select best matching preset or custom
+          presetBtns.forEach(b => b.classList.remove('active'));
+          if (bestMatchingPreset) {
+            bestMatchingPreset.classList.add('active');
+          } else {
+            const customBtn = document.querySelector('.preset-btn[data-preset="custom"]');
+            if (customBtn) customBtn.classList.add('active');
           }
         }, 100);
         
         setTimeout(() => {
+          meshStep.classList.add('visible');
+        }, 200);
+        
+        setTimeout(() => {
           dimensionsStep.classList.add('visible');
-        }, 250);
+        }, 300);
         
         setTimeout(() => {
           colorsStep.classList.add('visible');
-        }, 400);
+        }, 450);
         
         setTimeout(() => {
           convertStep.classList.add('visible');
           convertBtn.disabled = false;
-        }, 550);
+        }, 600);
       };
       img.src = event.target.result;
     };
@@ -921,9 +1177,24 @@ document.addEventListener('DOMContentLoaded', () => {
   convertBtn.addEventListener('click', () => {
     if (!loadedImage) return;
     
-    const height = parseInt(document.getElementById('heightInput').value) || 72;
-    const width = parseInt(document.getElementById('widthInput').value) || 60;
+    // Get dimensions and convert to stitches if in inches mode
+    let heightVal = parseFloat(document.getElementById('heightInput').value) || 4;
+    let widthVal = parseFloat(document.getElementById('widthInput').value) || 4;
     const maxColors = parseInt(document.getElementById('colorsInput').value) || 20;
+    
+    // Store original input values for saving
+    const inputWidth = widthVal;
+    const inputHeight = heightVal;
+    
+    // Convert to stitches if in inches mode
+    let height, width;
+    if (unitMode === 'inches') {
+      width = inchesToStitches(widthVal);
+      height = inchesToStitches(heightVal);
+    } else {
+      width = Math.round(widthVal);
+      height = Math.round(heightVal);
+    }
     
     showStatus('Processing image...', 'processing');
     convertBtn.disabled = true;
@@ -933,9 +1204,11 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         currentResult = processImage(loadedImage, height, width, maxColors);
         
-        // Update pattern info
+        // Update pattern info with both stitches and inches
+        const widthInches = stitchesToInches(width);
+        const heightInches = stitchesToInches(height);
         document.getElementById('patternInfo').textContent = 
-          `${height} rows × ${width} columns • ${currentResult.numColors} colors`;
+          `${height} rows × ${width} columns (${widthInches}" × ${heightInches}" at ${meshCount} mesh) • ${currentResult.numColors} colors`;
         
         // Hide upload section and show result sections
         document.querySelector('.upload-section').classList.add('hidden');
@@ -943,12 +1216,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('resultSection').classList.add('visible');
         document.getElementById('downloadSection').classList.add('visible');
         
+        // Show edit button (new conversions always have original image)
+        editProjectBtn.style.display = '';
+        
         // Render grid and legend
         renderGrid(parseInt(cellSizeInput.value));
         renderLegend();
         
         // Save project to local storage
-        // Create a small thumbnail to save space (max 80x80)
+        // Create a small thumbnail to save space (max 80x80, preserve aspect ratio)
         const thumbCanvas = document.createElement('canvas');
         const thumbSize = 80;
         const aspectRatio = loadedImage.width / loadedImage.height;
@@ -962,16 +1238,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const thumbCtx = thumbCanvas.getContext('2d');
         thumbCtx.drawImage(loadedImage, 0, 0, thumbCanvas.width, thumbCanvas.height);
         
+        // Create compressed original for editing (max 400px longest edge, preserve aspect ratio)
+        const editCanvas = document.createElement('canvas');
+        const maxEditSize = 400;
+        const editScale = Math.min(maxEditSize / loadedImage.width, maxEditSize / loadedImage.height, 1);
+        editCanvas.width = Math.round(loadedImage.width * editScale);
+        editCanvas.height = Math.round(loadedImage.height * editScale);
+        const editCtx = editCanvas.getContext('2d');
+        editCtx.drawImage(loadedImage, 0, 0, editCanvas.width, editCanvas.height);
+        
         const project = {
-          id: Date.now().toString(),
+          id: currentProjectId || Date.now().toString(),
           name: currentFileName,
           timestamp: Date.now(),
           thumbnail: thumbCanvas.toDataURL('image/jpeg', 0.6),
+          originalImage: editCanvas.toDataURL('image/jpeg', 0.7),
           quantizedImage: processingCanvas.toDataURL('image/jpeg', 0.8),
           grid: currentResult.grid,
           colorMap: currentResult.colorMap,
-          colorCounts: currentResult.colorCounts
+          colorCounts: currentResult.colorCounts,
+          // Store settings for editing
+          meshCount: meshCount,
+          unitMode: unitMode,
+          inputWidth: inputWidth,
+          inputHeight: inputHeight,
+          maxColors: maxColors
         };
+        
+        // If updating existing project, remove old one first
+        if (currentProjectId) {
+          const projects = getProjects().filter(p => p.id !== currentProjectId);
+          saveProjects(projects);
+        }
+        
+        currentProjectId = project.id;
         addProject(project);
         
         // Highlight the newly added project in sidebar
@@ -1046,6 +1346,87 @@ document.addEventListener('DOMContentLoaded', () => {
     a.href = url;
     a.download = `needlepoint_grid_${height}x${width}_${colors}colors_${cellSize}px.png`;
     a.click();
+  });
+  
+  // Edit project button handler
+  editProjectBtn.addEventListener('click', () => {
+    // Find the current project to get settings
+    const projects = getProjects();
+    const project = projects.find(p => p.id === currentProjectId);
+    
+    if (!project || !project.originalImage) {
+      showStatus('Cannot edit: original image not available', 'error');
+      setTimeout(hideStatus, 3000);
+      return;
+    }
+    
+    // Load the original image
+    const img = new Image();
+    img.onload = () => {
+      loadedImage = img;
+      loadedImage.dataUrl = project.originalImage;
+      
+      // Calculate aspect ratio
+      imageAspectRatio = img.width / img.height;
+      
+      // Restore settings
+      if (project.meshCount) {
+        meshCount = project.meshCount;
+        meshBtns.forEach(b => {
+          b.classList.toggle('active', parseInt(b.dataset.mesh) === meshCount);
+        });
+      }
+      
+      if (project.unitMode) {
+        unitMode = project.unitMode;
+        unitBtns.forEach(b => {
+          b.classList.toggle('active', b.dataset.unit === unitMode);
+        });
+        updateDimensionLabels();
+      }
+      
+      if (project.inputWidth !== undefined) {
+        widthInput.value = project.inputWidth;
+      }
+      if (project.inputHeight !== undefined) {
+        heightInput.value = project.inputHeight;
+      }
+      if (project.maxColors) {
+        colorsInput.value = project.maxColors;
+      }
+      
+      currentFileName = project.name;
+      
+      // Update preset availability and labels based on image aspect ratio
+      updatePresetAvailability();
+      updatePresetLabels();
+      
+      // Show upload section with image preview
+      fileDropzone.classList.add('hidden');
+      previewImg.src = project.originalImage;
+      selectedFilename.textContent = currentFileName;
+      imageSelectedRow.classList.add('visible');
+      
+      // Show all step groups
+      presetsStep.classList.add('visible');
+      meshStep.classList.add('visible');
+      dimensionsStep.classList.add('visible');
+      colorsStep.classList.add('visible');
+      convertStep.classList.add('visible');
+      convertBtn.disabled = false;
+      
+      // Mark custom preset since we're editing (user had custom dimensions)
+      presetBtns.forEach(b => b.classList.remove('active'));
+      const customBtn = document.querySelector('.preset-btn[data-preset="custom"]');
+      if (customBtn) customBtn.classList.add('active');
+      
+      // Show upload section, hide result sections
+      document.querySelector('.upload-section').classList.remove('hidden');
+      document.getElementById('controls').classList.remove('visible');
+      document.getElementById('resultSection').classList.remove('visible');
+      document.getElementById('downloadSection').classList.remove('visible');
+    };
+    img.src = project.originalImage;
   });
   
   // ============================================
