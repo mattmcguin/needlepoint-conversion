@@ -2,6 +2,8 @@
 
 A web application that transforms any image into a needlepoint canvas pattern, complete with color-coded stitch guides and downloadable outputs.
 
+**Live Demo:** [needlepointmaker.com](https://needlepointmaker.com/)
+
 ## Why I Built This
 
 My wife enjoys needlepoint as a hobby, but finding patterns for specific images she wanted to stitch was difficult. Commercial pattern generators often produce results with too many colors or awkward dimensions. This tool gives her full control over the conversion process—she can adjust the canvas size, limit the color palette, and export everything needed to start stitching.
@@ -81,6 +83,7 @@ The application uses the **median cut algorithm** to reduce the image's color pa
 
 ```
 needlepoint/
+├── images/       # Favicon, logo, and OG images
 ├── index.html    # Application markup
 ├── styles.css    # UI styling
 ├── app.js        # Core logic (quantization, rendering, storage)
