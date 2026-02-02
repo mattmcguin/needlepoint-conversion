@@ -327,7 +327,7 @@ function renderLegend() {
   
   // Sort by code number
   const codes = Object.keys(colorMap).sort((a, b) => {
-    return parseInt(a.slice(1)) - parseInt(b.slice(1));
+    return parseInt(a) - parseInt(b);
   });
   
   for (const code of codes) {
@@ -381,7 +381,7 @@ function generateLegendCSV() {
   let csv = 'code,hex,pixel_count\n';
   
   const codes = Object.keys(colorMap).sort((a, b) => {
-    return parseInt(a.slice(1)) - parseInt(b.slice(1));
+    return parseInt(a) - parseInt(b);
   });
   
   for (const code of codes) {
