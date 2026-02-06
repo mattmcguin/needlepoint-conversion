@@ -623,6 +623,7 @@ h1 {
   overflow: hidden;
 }
 .cell {
+  position: relative;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -632,6 +633,27 @@ h1 {
   border: 1px solid rgba(0,0,0,0.2);
   cursor: pointer;
   transition: transform 0.1s;
+}
+.cell.dimmed {
+  opacity: 0.2;
+}
+.cell.highlight {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: -2px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+.cell.completed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.35) 3px,
+    rgba(0, 0, 0, 0.25) 3px,
+    rgba(0, 0, 0, 0.25) 6px
+  );
+  pointer-events: none;
 }
 .cell:hover {
   transform: scale(1.5);
@@ -655,6 +677,22 @@ h1 {
   padding: 10px;
   background: #2a2a4a;
   border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+.legend-item:hover {
+  background: #34345a;
+  border-color: #4a5a7a;
+}
+.legend-item:focus-visible {
+  outline: 2px solid #7aa0c4;
+  outline-offset: 2px;
+}
+.legend-item.active {
+  border-color: #8ab4f8;
+  box-shadow: 0 0 0 1px rgba(138, 180, 248, 0.6);
+  background: #3a3a66;
 }
 .legend-swatch {
   width: 40px;

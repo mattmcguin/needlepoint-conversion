@@ -215,6 +215,8 @@ let lastEditedDimension = 'width';
 let meshCount = 18;
 let unitMode = 'inches'; // 'inches' or 'stitches'
 let currentProjectId = null;
+let selectedLegendCode = null;
+let completedCells = new Set();
 
 // Size presets for common needlepoint projects (in stitches at 18 mesh)
 const SIZE_PRESETS = [
@@ -304,12 +306,27 @@ function renderGrid(cellSize) {
   grid.forEach((row, rowIdx) => {
     row.forEach((code, colIdx) => {
       const cell = document.createElement('div');
+      const cellIndex = rowIdx * cols + colIdx;
       cell.className = 'cell' + (showCodes ? ' show-codes' : '');
       cell.style.backgroundColor = colorMap[code];
       cell.style.color = getTextColor(colorMap[code]);
       cell.style.width = cellSize + 'px';
       cell.style.height = cellSize + 'px';
       cell.style.borderWidth = showGridLines ? '1px' : '0';
+      cell.dataset.code = code;
+      cell.dataset.index = cellIndex.toString();
+      
+      if (completedCells.has(cellIndex)) {
+        cell.classList.add('completed');
+      }
+      
+      if (selectedLegendCode) {
+        if (code === selectedLegendCode) {
+          cell.classList.add('highlight');
+        } else {
+          cell.classList.add('dimmed');
+        }
+      }
       if (showCodes) cell.textContent = code;
       cell.title = `Row ${rowIdx + 1}, Col ${colIdx + 1}\n${code}: ${colorMap[code]}`;
       gridEl.appendChild(cell);
@@ -333,6 +350,15 @@ function renderLegend() {
   for (const code of codes) {
     const item = document.createElement('div');
     item.className = 'legend-item';
+    item.dataset.code = code;
+    item.setAttribute('role', 'button');
+    item.tabIndex = 0;
+    if (selectedLegendCode === code) {
+      item.classList.add('active');
+      item.setAttribute('aria-pressed', 'true');
+    } else {
+      item.setAttribute('aria-pressed', 'false');
+    }
     item.innerHTML = `
       <div class="legend-swatch" style="background:${colorMap[code]}"></div>
       <div class="legend-info">
@@ -580,6 +606,8 @@ function loadProject(project) {
     colorCounts: project.colorCounts,
     numColors: Object.keys(project.colorMap).length
   };
+  selectedLegendCode = null;
+  completedCells = new Set(project.completedCells || []);
   
   // Set current project ID for editing
   currentProjectId = project.id;
@@ -638,6 +666,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const downloadGridImageBtn = document.getElementById('downloadGridImage');
   const clearAllBtn = document.getElementById('clearAllBtn');
   const newProjectBtn = document.getElementById('newProjectBtn');
+  const legendEl = document.getElementById('legend');
+  const gridEl = document.getElementById('grid');
   
   let loadedImage = null;
   let currentFileName = 'Untitled';
@@ -1025,6 +1055,8 @@ document.addEventListener('DOMContentLoaded', () => {
     currentFileName = 'Untitled';
     currentResult = null;
     currentProjectId = null;
+    selectedLegendCode = null;
+    completedCells = new Set();
     convertBtn.disabled = true;
     imageAspectRatio = null;
     
@@ -1078,6 +1110,8 @@ document.addEventListener('DOMContentLoaded', () => {
     presetBtns.forEach(b => b.classList.remove('active'));
     convertBtn.disabled = true;
     currentProjectId = null;
+    selectedLegendCode = null;
+    completedCells = new Set();
     
     // Reset UI - hide results until convert is clicked
     document.getElementById('controls').classList.remove('visible');
@@ -1203,6 +1237,20 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       try {
         currentResult = processImage(loadedImage, height, width, maxColors);
+        selectedLegendCode = null;
+        
+        let preservedCompletedCells = [];
+        if (currentProjectId) {
+          const existingProject = getProjects().find(p => p.id === currentProjectId);
+          if (existingProject && existingProject.grid) {
+            const existingHeight = existingProject.grid.length;
+            const existingWidth = existingProject.grid[0].length;
+            if (existingHeight === height && existingWidth === width) {
+              preservedCompletedCells = existingProject.completedCells || [];
+            }
+          }
+        }
+        completedCells = new Set(preservedCompletedCells);
         
         // Update pattern info with both stitches and inches
         const widthInches = stitchesToInches(width);
@@ -1257,6 +1305,7 @@ document.addEventListener('DOMContentLoaded', () => {
           grid: currentResult.grid,
           colorMap: currentResult.colorMap,
           colorCounts: currentResult.colorCounts,
+          completedCells: [...completedCells],
           // Store settings for editing
           meshCount: meshCount,
           unitMode: unitMode,
@@ -1396,6 +1445,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       currentFileName = project.name;
+      selectedLegendCode = null;
+      completedCells = new Set(project.completedCells || []);
       
       // Update preset availability and labels based on image aspect ratio
       updatePresetAvailability();
@@ -1427,6 +1478,52 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('downloadSection').classList.remove('visible');
     };
     img.src = project.originalImage;
+  });
+  
+  legendEl.addEventListener('click', (e) => {
+    const item = e.target.closest('.legend-item');
+    if (!item || !item.dataset.code) return;
+    const code = item.dataset.code;
+    selectedLegendCode = selectedLegendCode === code ? null : code;
+    renderGrid(parseInt(cellSizeInput.value));
+    renderLegend();
+  });
+  
+  legendEl.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const item = e.target.closest('.legend-item');
+    if (!item || !item.dataset.code) return;
+    e.preventDefault();
+    const code = item.dataset.code;
+    selectedLegendCode = selectedLegendCode === code ? null : code;
+    renderGrid(parseInt(cellSizeInput.value));
+    renderLegend();
+  });
+  
+  function persistCompletedCells() {
+    if (!currentProjectId) return;
+    const projects = getProjects();
+    const idx = projects.findIndex(p => p.id === currentProjectId);
+    if (idx === -1) return;
+    projects[idx].completedCells = [...completedCells];
+    saveProjects(projects);
+  }
+  
+  gridEl.addEventListener('click', (e) => {
+    const cell = e.target.closest('.cell');
+    if (!cell || !cell.dataset.index) return;
+    const index = parseInt(cell.dataset.index, 10);
+    if (Number.isNaN(index)) return;
+    
+    if (completedCells.has(index)) {
+      completedCells.delete(index);
+      cell.classList.remove('completed');
+    } else {
+      completedCells.add(index);
+      cell.classList.add('completed');
+    }
+    
+    persistCompletedCells();
   });
   
   // ============================================
