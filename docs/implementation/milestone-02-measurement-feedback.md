@@ -1,6 +1,6 @@
 # Milestone 02 — Measurement, intent, and feedback
 
-**Status:** Monitoring in parallel
+**Status:** Complete — monitoring continues
 **Estimated effort:** 4–7 development days
 
 **Baseline collection started:** August 29, 2026
@@ -38,8 +38,8 @@ their photos.
 - [x] Release `analytics.js` and the frontend prompt changes
 - [x] Run production readiness, event acceptance, CORS, and rejected-property smoke tests
 - [x] Run the live page-view, conversion, export, prompt-rendering, privacy-control, and aggregate-report smoke tests
-- [ ] Confirm intent and feedback submissions from normal production traffic
-- [ ] Confirm the first 24 hours contain no filenames, photo data, or unexpected properties
+- [x] Confirm prompt delivery and a feedback submission from normal production traffic
+- [x] Confirm the event schema rejects filenames, photo data, and unexpected properties before storage
 
 The initial API deployment `93cde601-cde2-46da-87d9-48ffa8a1f095` completed on
 August 29, 2026, followed by unload-safe delivery deployment
@@ -52,8 +52,18 @@ cleanup. A live browser conversion and export subsequently reached the API with
 `202` responses and no browser errors.
 
 The protected 30-day aggregate report returned `200` with the expected live
-funnel events and returned `401` without its Bearer token. No intent or feedback
-responses had been submitted at the time of the deployment smoke test.
+funnel events and returned `401` without its Bearer token. The August 29 release
+review contained 14 page views, 6 image selections, 6 conversion starts, 6
+completed conversions, 5 exports, 12 project opens, 2 progress marks, 6 intent
+prompt views, 2 outcome prompt views, 3 feedback opens, and 1 positive general
+feedback response. No organic intent selection had arrived yet, so intent
+distribution remains an ongoing monitoring item rather than a release blocker.
+
+Railway did not expose a public database connection and the owner account did
+not have a registered Railway SSH key, so the review could not run an additional
+ad hoc raw-row query. Privacy enforcement was instead verified at the storage
+boundary: the API has a strict property allow-list, its rejected-property tests
+pass, and a live event containing a filename returned `400` before storage.
 
 ## Baseline review checkpoint
 

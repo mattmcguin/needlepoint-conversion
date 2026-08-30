@@ -133,8 +133,8 @@
         <div><h2>Choose your photo</h2><p>Clear subjects and simple backgrounds make the easiest patterns.</p></div>
       </div>
       
-      <div class="file-dropzone" id="fileDropzone">
-        <input type="file" id="imageInput" accept="image/*">
+      <div class="file-dropzone" id="fileDropzone" role="button" tabindex="0" aria-label="Choose a photo to convert">
+        <input type="file" id="imageInput" accept="image/*" tabindex="-1">
         <span class="dropzone-icon" aria-hidden="true">↥</span>
         <strong class="dropzone-text">Drop a photo here</strong>
         <span class="dropzone-help">or choose from your device · JPG, PNG, WebP, or HEIC</span>
@@ -153,8 +153,8 @@
       
       <div class="setup-options-grid">
       <div class="step-group" id="presetsStep">
-        <label>Project size</label>
-        <div class="size-presets" id="sizePresets">
+        <span class="step-label" id="projectSizeLabel">Project size</span>
+        <div class="size-presets" id="sizePresets" role="group" aria-labelledby="projectSizeLabel">
           <button type="button" class="preset-btn" data-height="72" data-width="72" data-name="Coaster">
             <span class="preset-name">Coaster</span>
             <span class="preset-size">4 × 4 in</span>
@@ -180,26 +180,26 @@
       </div>
       
       <div class="step-group" id="meshStep">
-        <label>Canvas Mesh</label>
-        <div class="mesh-options">
+        <span class="step-label" id="canvasMeshLabel">Canvas mesh</span>
+        <div class="mesh-options" role="group" aria-labelledby="canvasMeshLabel">
           <button type="button" class="mesh-btn" data-mesh="12">12 mesh</button>
           <button type="button" class="mesh-btn active" data-mesh="18">18 mesh</button>
         </div>
       </div>
       
       <div class="step-group" id="dimensionsStep">
-        <label>Dimensions</label>
-        <div class="unit-toggle">
+        <span class="step-label" id="dimensionsLabel">Dimensions</span>
+        <div class="unit-toggle" role="group" aria-labelledby="dimensionsLabel">
           <button type="button" class="unit-btn" data-unit="stitches">Stitches</button>
           <button type="button" class="unit-btn active" data-unit="inches">Inches</button>
         </div>
         <div class="dimensions-row">
           <div class="dimension-input">
-            <span class="dimension-label" id="widthLabel">Width (inches)</span>
+            <label class="dimension-label" id="widthLabel" for="widthInput">Width (inches)</label>
             <input type="number" id="widthInput" value="4" min="1" max="20" step="0.5">
           </div>
           <div class="dimension-input">
-            <span class="dimension-label" id="heightLabel">Height (inches)</span>
+            <label class="dimension-label" id="heightLabel" for="heightInput">Height (inches)</label>
             <input type="number" id="heightInput" value="4" min="1" max="20" step="0.5">
           </div>
         </div>
@@ -210,7 +210,7 @@
       </div>
       
       <div class="step-group" id="colorsStep">
-        <label>Maximum colors</label>
+        <label class="step-label" for="colorsInput">Maximum colors</label>
         <input type="number" id="colorsInput" value="20" min="2" max="64">
       </div>
       
@@ -324,7 +324,7 @@
   
   <!-- Hidden canvas for image processing -->
   <canvas id="processingCanvas" style="display:none;"></canvas>
-  <div class="color-context-menu" id="colorContextMenu" aria-hidden="true"></div>
+  <div class="color-context-menu" id="colorContextMenu" role="dialog" aria-label="Color picker" aria-hidden="true"></div>
 
   <dialog class="feedback-dialog" id="feedbackDialog" aria-labelledby="feedbackTitle">
     <form method="dialog" class="dialog-close-form">

@@ -327,6 +327,15 @@ function getTextColor(hex) {
   return luminance > 0.5 ? '#000' : '#fff';
 }
 
+function updateCellAccessibility(cell, rowIdx, colIdx, code, hex, isCompleted) {
+  if (!cell) return;
+  cell.setAttribute('role', 'gridcell');
+  cell.setAttribute(
+    'aria-label',
+    `Row ${rowIdx + 1}, column ${colIdx + 1}, color ${code} ${hex}${isCompleted ? ', completed' : ''}`
+  );
+}
+
 function renderGrid(cellSize) {
   if (!currentResult) return;
   
@@ -335,6 +344,10 @@ function renderGrid(cellSize) {
   const cols = grid[0].length;
   
   gridEl.innerHTML = '';
+  gridEl.setAttribute('role', 'grid');
+  gridEl.setAttribute('aria-label', 'Needlepoint stitch grid');
+  gridEl.setAttribute('aria-rowcount', String(grid.length));
+  gridEl.setAttribute('aria-colcount', String(cols));
   gridEl.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
   
   grid.forEach((row, rowIdx) => {
@@ -349,6 +362,7 @@ function renderGrid(cellSize) {
       cell.style.borderWidth = showGridLines ? '1px' : '0';
       cell.dataset.code = code;
       cell.dataset.index = cellIndex.toString();
+      cell.tabIndex = cellIndex === 0 ? 0 : -1;
       
       if (completedCells.has(cellIndex)) {
         cell.classList.add('completed');
@@ -363,6 +377,7 @@ function renderGrid(cellSize) {
       }
       if (showCodes) cell.textContent = code;
       cell.title = `Row ${rowIdx + 1}, Col ${colIdx + 1}\n${code}: ${colorMap[code]}`;
+      updateCellAccessibility(cell, rowIdx, colIdx, code, colorMap[code], completedCells.has(cellIndex));
       gridEl.appendChild(cell);
     });
   });
@@ -663,6 +678,9 @@ function renderProjectList() {
     const item = document.createElement('div');
     item.className = 'project-item';
     item.dataset.id = project.id;
+
+    const openBtn = document.createElement('button');
+    openBtn.className = 'project-open';
     
     const thumb = document.createElement('img');
     thumb.className = 'project-thumb';
@@ -695,16 +713,19 @@ function renderProjectList() {
     deleteBtn.className = 'project-delete';
     deleteBtn.innerHTML = '×';
     deleteBtn.title = 'Delete project';
+    deleteBtn.setAttribute('aria-label', `Delete ${project.name}`);
     deleteBtn.onclick = (e) => {
       e.stopPropagation();
       deleteProject(project.id);
     };
     
-    item.appendChild(thumb);
-    item.appendChild(info);
+    openBtn.appendChild(thumb);
+    openBtn.appendChild(info);
+    openBtn.setAttribute('aria-label', `Open ${project.name}, ${projectProgress}% complete`);
+    openBtn.onclick = () => loadProject(project);
+
+    item.appendChild(openBtn);
     item.appendChild(deleteBtn);
-    
-    item.onclick = () => loadProject(project);
     
     listEl.appendChild(item);
   });
@@ -824,6 +845,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Click on dropzone triggers file input
   fileDropzone.addEventListener('click', () => {
+    imageInput.click();
+  });
+
+  fileDropzone.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
     imageInput.click();
   });
   
@@ -1769,6 +1796,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const cell = getCellElementByIndex(index);
     if (cell) {
       cell.classList.toggle('completed', shouldBeCompleted);
+      const cols = currentResult.grid[0].length;
+      const rowIdx = Math.floor(index / cols);
+      const colIdx = index % cols;
+      const code = currentResult.grid[rowIdx][colIdx];
+      updateCellAccessibility(cell, rowIdx, colIdx, code, currentResult.colorMap[code], shouldBeCompleted);
     }
     persistCompletedCells();
     recordProgressMilestone();
@@ -1813,6 +1845,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cell.style.color = getTextColor(hex);
     cell.textContent = showCodes ? code : '';
     cell.title = `Row ${rowIdx + 1}, Col ${colIdx + 1}\n${code}: ${hex}`;
+    updateCellAccessibility(cell, rowIdx, colIdx, code, hex, completedCells.has(rowIdx * currentResult.grid[0].length + colIdx));
     
     if (selectedLegendCode) {
       if (code === selectedLegendCode) {
@@ -1851,10 +1884,10 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="color-context-title">Set Color</div>
       <div class="color-context-grid">
         ${codes.map(code => `
-          <div class="color-context-item ${code === currentCode ? 'active' : ''}" data-code="${code}">
+          <button type="button" class="color-context-item ${code === currentCode ? 'active' : ''}" data-code="${code}" aria-label="Color ${code}, ${colorMap[code]}">
             <span class="color-context-swatch" style="background:${colorMap[code]}"></span>
             <span>${code}</span>
-          </div>
+          </button>
         `).join('')}
       </div>
     `;
@@ -1935,10 +1968,10 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="color-context-title">Paint Color</div>
       <div class="color-context-grid">
         ${codes.map(code => `
-          <div class="color-context-item ${code === paintColorCode ? 'active' : ''}" data-code="${code}">
+          <button type="button" class="color-context-item ${code === paintColorCode ? 'active' : ''}" data-code="${code}" aria-label="Color ${code}, ${colorMap[code]}">
             <span class="color-context-swatch" style="background:${colorMap[code]}"></span>
             <span>${code}</span>
-          </div>
+          </button>
         `).join('')}
       </div>
     `;
@@ -2011,6 +2044,40 @@ document.addEventListener('DOMContentLoaded', () => {
       pushAction({ type: 'complete', index, prevCompleted: false });
       applyCompletion(index, true);
     }
+  });
+
+  gridEl.addEventListener('keydown', (event) => {
+    const cell = event.target.closest('.cell');
+    if (!cell || !currentResult?.grid?.length) return;
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      cell.click();
+      return;
+    }
+
+    const cols = currentResult.grid[0].length;
+    const total = currentResult.grid.length * cols;
+    const currentIndex = parseInt(cell.dataset.index, 10);
+    const column = currentIndex % cols;
+    const moves = {
+      ArrowLeft: column > 0 ? -1 : 0,
+      ArrowRight: column < cols - 1 ? 1 : 0,
+      ArrowUp: -cols,
+      ArrowDown: cols,
+      Home: -currentIndex,
+      End: total - 1 - currentIndex
+    };
+    if (!(event.key in moves)) return;
+
+    event.preventDefault();
+    const nextIndex = Math.max(0, Math.min(total - 1, currentIndex + moves[event.key]));
+    const nextCell = getCellElementByIndex(nextIndex);
+    if (!nextCell || nextCell === cell) return;
+    cell.tabIndex = -1;
+    nextCell.tabIndex = 0;
+    nextCell.focus({ preventScroll: true });
+    nextCell.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   });
   
   gridEl.addEventListener('contextmenu', (e) => {

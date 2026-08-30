@@ -158,6 +158,19 @@ body {
   background: #4a5a7a;
   border: 1px solid #6a7a9a;
 }
+.project-open {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
 .project-thumb {
   width: 40px;
   height: 40px;
@@ -183,6 +196,8 @@ body {
 }
 .project-delete {
   opacity: 0;
+  width: 32px;
+  height: 32px;
   background: none;
   border: none;
   color: #f66;
@@ -191,7 +206,8 @@ body {
   padding: 4px;
   transition: opacity 0.2s;
 }
-.project-item:hover .project-delete {
+.project-item:hover .project-delete,
+.project-item:focus-within .project-delete {
   opacity: 1;
 }
 .project-delete:hover {
@@ -853,6 +869,11 @@ h1 {
   transform: scale(1.5);
   z-index: 10;
   box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+.cell:focus-visible {
+  z-index: 11;
+  outline: 3px solid #7a4f37;
+  outline-offset: -2px;
 }
 .cell.show-codes {
   font-size: 6px;
@@ -1795,7 +1816,8 @@ body.guided-studio {
 .guided-studio #dimensionsStep,
 .guided-studio #convertStep { grid-column: 1 / -1; }
 .guided-studio #convertStep.visible { padding: 0; background: transparent; border: 0; }
-.guided-studio .step-group > label { color: var(--studio-ink); font-size: 12px; font-weight: 850; }
+.guided-studio .step-group > label,
+.guided-studio .step-group > .step-label { color: var(--studio-ink); font-size: 12px; font-weight: 850; }
 .guided-studio .size-presets {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(104px, .85fr);
@@ -2198,6 +2220,17 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
   .guided-studio .preset-btn { min-width: 0; }
   .guided-studio .preset-btn-custom { grid-column: 1 / -1; }
   .guided-studio .image-selected-row { align-items: center; flex-direction: row; }
+  .guided-studio .project-open,
+  .guided-studio .new-project-btn,
+  .guided-studio .edit-settings-btn { min-height: 44px; }
+  .guided-studio .mesh-btn,
+  .guided-studio .unit-btn,
+  .guided-studio .dimension-input input,
+  .guided-studio #colorsInput { min-height: 44px; }
+  .guided-studio .project-delete { width: 44px; height: 44px; opacity: 1; }
+  .guided-studio .sidebar-link-btn,
+  .guided-studio .change-file-btn,
+  .guided-studio .privacy-pill { min-height: 44px; }
   .guided-studio .result-section.visible { padding-top: 78px; }
   .guided-studio .result-header { align-items: stretch; flex-direction: column; padding-inline: 3px; }
   .result-title-group h1 { font-size: 30px; }
@@ -2224,10 +2257,10 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
   .guided-studio .controls,
   .guided-studio .controls.visible { align-items: stretch; flex-direction: column; }
   .guided-studio .result-section.visible .mode-bar { display: grid; width: 100%; grid-template-columns: 1fr 1fr; }
-  .guided-studio .mode-btn { width: 100%; }
+  .guided-studio .mode-btn { width: 100%; min-height: 44px; }
   .guided-studio .mode-paint-controls.visible { grid-column: 1 / -1; justify-content: center; }
   .canvas-display-controls { width: 100%; flex-wrap: wrap; justify-content: center; }
-  .canvas-display-controls > button { flex: 1; }
+  .canvas-display-controls > button { min-height: 44px; flex: 1; }
   .guided-studio .controls label { width: 100%; justify-content: center; }
   .guided-studio .controls input[type="range"] { width: min(220px, 62vw); }
   .guided-studio .grid-wrapper { height: min(64vh, 560px); min-height: 390px; margin: 0; padding: 14px; }
@@ -2235,7 +2268,8 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
   .guided-studio .download-section,
   .guided-studio .download-section.visible { align-items: stretch; flex-direction: column; }
   .guided-studio .download-section > span { margin: 0 0 3px; }
-  .guided-studio .download-btn { width: 100%; min-height: 42px; }
+  .guided-studio .download-btn { width: 100%; min-height: 44px; }
+  .guided-studio .color-context-item { min-width: 44px; min-height: 44px; }
   .guided-studio .legend { grid-template-columns: 1fr; }
   .guided-studio .mode-bar { bottom: auto; left: auto; transform: none; }
 }

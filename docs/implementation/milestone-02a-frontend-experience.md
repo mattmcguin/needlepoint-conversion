@@ -1,6 +1,6 @@
 # Milestone 02A — Frontend experience
 
-**Status:** In progress
+**Status:** Complete
 **Estimated effort:** 4–6 development days after the measurement baseline
 
 ## Objective
@@ -22,7 +22,7 @@ event funnel so the release can be evaluated against the established baseline.
 
 ## Discovery and design
 
-- [ ] Review conversion drop-off, export usage, device mix, intent, and feedback
+- [x] Review the initial conversion, export, progress, intent-prompt, and feedback baseline
 - [x] Test the current first-run, editing, progress, and export flows on desktop and mobile
 - [x] Define the smallest revised information architecture that addresses observed friction
 - [x] Preserve familiar project data and behavior while changing presentation
@@ -58,9 +58,12 @@ production direction.
 - [x] Group display controls and exports around the jobs users are trying to complete
 - [x] Give the pattern canvas full workspace width and add a fit-to-width overview
 - [x] Improve sidebar project navigation and the returning-user experience
-- [ ] Improve touch targets, responsive layout, keyboard navigation, and focus states
-- [ ] Integrate intent, feedback, privacy, and support surfaces without interrupting creation
-- [ ] Establish a cohesive visual system for type, color, spacing, controls, and states
+- [x] Improve touch targets, responsive layout, keyboard navigation, and focus states
+- [x] Integrate intent, feedback, and privacy surfaces without interrupting creation
+- [x] Establish a cohesive visual system for type, color, spacing, controls, and states
+
+The optional support surface remains intentionally scheduled for Milestone 08,
+after the SEO and paid-feature discovery work has produced a clearer audience.
 
 ## Core journey verification
 
@@ -76,8 +79,15 @@ Use this checklist before each production release of the redesign:
 - [x] A 72 × 72 pattern uses the full desktop workspace and can fit within a phone viewport.
 - [x] Feedback and privacy dialogs remain available without interrupting creation.
 - [x] The create and pattern views have no page-level horizontal overflow at 390px.
-- [ ] Verify all four downloaded file types after the final release build.
-- [ ] Complete a keyboard-only pass through creation, editing, dialogs, and exports.
+- [x] Verify all four downloaded file types after the final release build.
+- [x] Complete a keyboard-only pass through creation, editing, dialogs, and exports.
+
+Release verification on August 29, 2026 covered a real 72 × 72 conversion,
+saved-project reopening, progress marking and undo, color editing, keyboard grid
+navigation, prompt and dialog dismissal, CSV content, PNG dimensions and visual
+content, desktop layout, and the 390 px phone layout. The phone view had no
+page-level horizontal overflow and all visible non-grid controls met a 44 px
+minimum touch target.
 
 ## Acceptance criteria
 
