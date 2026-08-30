@@ -958,7 +958,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const heightStitches = parseInt(btn.dataset.height);
       const widthInches = Math.round((widthStitches / meshCount) * 10) / 10;
       const heightInches = Math.round((heightStitches / meshCount) * 10) / 10;
-      btn.textContent = `${name} (${widthInches}" × ${heightInches}")`;
+      const sizeLabel = btn.querySelector('.preset-size');
+      if (sizeLabel) {
+        sizeLabel.textContent = `${widthInches} × ${heightInches} in`;
+        btn.setAttribute('aria-label', `${name}, ${widthInches} by ${heightInches} inches`);
+      }
     });
   }
   
