@@ -8,13 +8,13 @@ separate because these actions require the project owner's Railway account.
 - [x] Create a Railway project named `needlepoint-maker`.
 - [x] Add a PostgreSQL service.
 - [x] Add an empty service named `needlepoint-api`.
-- [ ] Connect this GitHub repo after the Phase 1 changes are committed.
-- [ ] Set the service root directory to `/backend`.
-- [ ] Limit watch paths to `/backend/**` and the lockfile used by the backend.
-- [ ] Use Railway's detected Node build, or explicitly set build to `npm run build`.
+- [x] Connect this GitHub repo after the Phase 1 changes are committed.
+- [x] Set the service root directory to `/backend`.
+- [x] Limit watch paths to `/backend/**` and the lockfile used by the backend.
+- [x] Use Railway's detected Node build, or explicitly set build to `npm run build`.
 - [ ] Set the pre-deploy command to `npm run db:migrate`.
 - [ ] Set the start command to `npm run start`.
-- [ ] Set the healthcheck path to `/health`.
+- [x] Set the healthcheck path to `/health`.
 
 ## Variables
 
@@ -39,7 +39,7 @@ registered.
 
 - [ ] Create a staging environment before production analytics work.
 - [x] Generate a Railway domain and run the production smoke tests.
-- [ ] Add `api.needlepointmaker.com` after staging is stable.
+- [x] Add `api.needlepointmaker.com` after staging is stable.
 - [ ] Update `APP_ORIGINS` only with explicit production and local origins.
 - [ ] Enable automated PostgreSQL backups.
 - [x] Run retention cleanup in the API process at startup and once daily.

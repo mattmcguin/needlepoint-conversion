@@ -20,11 +20,12 @@ Stripe webhooks.
 - [x] Automated health and configuration tests
 - [x] Railway project with API and PostgreSQL services
 - [ ] Staging and production Railway environments
-- [ ] Railway service root directory set to `/backend`
-- [ ] Build, pre-deploy migration, start, and `/health` settings configured
+- [x] Railway service connected to GitHub with root directory `/backend`
+- [x] GitHub watch path, detected Node build, package start, and `/health` configured
+- [ ] Move migration execution from start to Railway pre-deploy
 - [x] Generated Railway domain (`needlepoint-api-production.up.railway.app`)
 - [x] Non-secret Railway variables and private PostgreSQL reference added
-- [ ] Add `api.needlepointmaker.com`
+- [x] Add `api.needlepointmaker.com`
 - [ ] Automated PostgreSQL backups enabled
 - [x] Production liveness and database-readiness smoke tests
 - [ ] Staging smoke test against the public Railway endpoint

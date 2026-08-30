@@ -15,7 +15,7 @@ monetization, and SEO work planned for Needlepoint Maker.
 | Milestone | Status | Outcome |
 | --- | --- | --- |
 | [01 — Backend foundation](milestone-01-backend-foundation.md) | In progress | Railway-ready API, PostgreSQL schema, health checks, and deployment runbook |
-| [02 — Measurement and feedback](milestone-02-measurement-feedback.md) | Not started | Privacy-conscious events, intent prompts, feedback, and reporting |
+| [02 — Measurement and feedback](milestone-02-measurement-feedback.md) | Collecting baseline | Privacy-conscious events, intent prompts, feedback, and reporting |
 | [02A — Frontend experience](milestone-02a-frontend-experience.md) | Not started | Evidence-led redesign of onboarding, pattern editing, progress, exports, and mobile use |
 | [03 — SEO foundation](milestone-03-seo-foundation.md) | Not started | Search baseline, improved homepage, indexable page structure, and technical SEO |
 | [04 — Core product improvements](milestone-04-core-product.md) | Not started | More mesh sizes, better progress, project resilience, and reusable app internals |
