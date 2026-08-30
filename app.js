@@ -223,6 +223,35 @@ let interactionMode = 'progress';
 let paintColorCode = '1';
 let updatePaintControls = null;
 
+function trackProductEvent(eventName, properties = {}, projectId = currentProjectId) {
+  window.NeedlepointAnalytics?.track(eventName, properties, projectId);
+}
+
+function fileTypeForAnalytics(file) {
+  const type = file?.type?.toLowerCase() || '';
+  if (type.includes('jpeg') || type.includes('jpg')) return 'jpeg';
+  if (type.includes('png')) return 'png';
+  if (type.includes('webp')) return 'webp';
+  if (type.includes('gif')) return 'gif';
+  if (type.includes('heic') || type.includes('heif')) return 'heic';
+  return 'other';
+}
+
+function megapixelsBucket(width, height) {
+  const megapixels = (width * height) / 1_000_000;
+  if (megapixels < 1) return 'under_1';
+  if (megapixels < 5) return '1_to_5';
+  if (megapixels < 12) return '5_to_12';
+  return 'over_12';
+}
+
+function durationBucket(durationMs) {
+  if (durationMs < 1_000) return 'under_1s';
+  if (durationMs < 3_000) return '1_to_3s';
+  if (durationMs < 10_000) return '3_to_10s';
+  return 'over_10s';
+}
+
 // Size presets for common needlepoint projects (in stitches at 18 mesh)
 const SIZE_PRESETS = [
   { name: 'Coaster', width: 72, height: 72 },
@@ -616,6 +645,7 @@ function loadProject(project) {
   
   // Set current project ID for editing
   currentProjectId = project.id;
+  trackProductEvent('project_opened', { source: 'sidebar' }, project.id);
   
   // Restore mesh count if available
   if (project.meshCount) {
@@ -680,9 +710,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const paintControls = document.getElementById('paintControls');
   const paintColorLabel = document.getElementById('paintColorLabel');
   const paintSwatch = document.getElementById('paintSwatch');
+  const intentPrompt = document.getElementById('intentPrompt');
+  const outcomePrompt = document.getElementById('outcomePrompt');
+  const feedbackDialog = document.getElementById('feedbackDialog');
+  const privacyDialog = document.getElementById('privacyDialog');
   
   let loadedImage = null;
   let currentFileName = 'Untitled';
+  let conversionStartedAt = 0;
   
   const heightInput = document.getElementById('heightInput');
   const widthInput = document.getElementById('widthInput');
@@ -1098,6 +1133,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('controls').classList.remove('visible');
     document.getElementById('resultSection').classList.remove('visible');
     document.getElementById('downloadSection').classList.remove('visible');
+    intentPrompt.classList.remove('visible');
+    outcomePrompt.classList.remove('visible');
     
     // Clear content
     document.getElementById('grid').innerHTML = '';
@@ -1196,6 +1233,10 @@ document.addEventListener('DOMContentLoaded', () => {
       img.onload = () => {
         loadedImage = img;
         loadedImage.dataUrl = event.target.result; // Store for saving
+        trackProductEvent('image_selected', {
+          fileType: fileTypeForAnalytics(file),
+          megapixelsBucket: megapixelsBucket(img.width, img.height)
+        }, null);
         
         // Calculate and store aspect ratio (width / height)
         imageAspectRatio = img.width / img.height;
@@ -1295,6 +1336,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     showStatus('Processing image...', 'processing');
     convertBtn.disabled = true;
+    conversionStartedAt = performance.now();
+    const isEdit = Boolean(currentProjectId);
+    const conversionAnalytics = {
+      mesh: meshCount,
+      widthStitches: width,
+      heightStitches: height,
+      maxColors,
+      unitMode,
+      isEdit
+    };
+    trackProductEvent('conversion_started', conversionAnalytics);
     
     // Use setTimeout to allow UI to update
     setTimeout(() => {
@@ -1387,6 +1439,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         currentProjectId = project.id;
         addProject(project);
+        trackProductEvent('conversion_completed', {
+          ...conversionAnalytics,
+          colorCount: currentResult.numColors,
+          durationBucket: durationBucket(performance.now() - conversionStartedAt)
+        }, project.id);
+        showIntentPrompt(project.id);
         
         // Highlight the newly added project in sidebar
         document.querySelectorAll('.project-item').forEach(el => {
@@ -1398,6 +1456,10 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         showStatus('Error: ' + err.message, 'error');
         console.error(err);
+        trackProductEvent('conversion_failed', {
+          stage: 'processing',
+          errorCode: 'processing_failed'
+        });
       }
       
       convertBtn.disabled = false;
@@ -1426,6 +1488,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const width = currentResult.grid[0].length;
     const colors = currentResult.numColors;
     downloadCSV(generateGridCSV(), `needlepoint_grid_${height}x${width}_${colors}colors.csv`);
+    recordExport('grid_csv');
   });
   
   downloadLegendBtn.addEventListener('click', () => {
@@ -1433,6 +1496,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const width = currentResult.grid[0].length;
     const colors = currentResult.numColors;
     downloadCSV(generateLegendCSV(), `needlepoint_legend_${height}x${width}_${colors}colors.csv`);
+    recordExport('legend_csv');
   });
   
   downloadPngBtn.addEventListener('click', () => {
@@ -1445,6 +1509,7 @@ document.addEventListener('DOMContentLoaded', () => {
     a.href = url;
     a.download = `needlepoint_preview_${height}x${width}_${colors}colors.png`;
     a.click();
+    recordExport('preview_png');
   });
   
   downloadGridImageBtn.addEventListener('click', () => {
@@ -1460,6 +1525,7 @@ document.addEventListener('DOMContentLoaded', () => {
     a.href = url;
     a.download = `needlepoint_grid_${height}x${width}_${colors}colors_${cellSize}px.png`;
     a.click();
+    recordExport('grid_png');
   });
   
   // Edit project button handler
@@ -1608,6 +1674,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cell.classList.toggle('completed', shouldBeCompleted);
     }
     persistCompletedCells();
+    recordProgressMilestone();
   }
 
   function applyColorChange(rowIdx, colIdx, nextCode) {
@@ -1875,6 +1942,219 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   window.addEventListener('resize', hideColorContextMenu);
+
+  // ============================================
+  // PRODUCT RESEARCH AND PRIVACY CONTROLS
+  // ============================================
+
+  const progressBucketsSeen = new Set();
+  let feedbackType = 'general';
+
+  function promptStateKey(prompt, projectId) {
+    return `needlepoint_${prompt}_${projectId || 'none'}`;
+  }
+
+  function showIntentPrompt(projectId) {
+    if (!intentPrompt || !projectId) return;
+    const answered = sessionStorage.getItem(promptStateKey('intent_answered', projectId));
+    const dismissed = sessionStorage.getItem(promptStateKey('intent_dismissed', projectId));
+    if (answered || dismissed) return;
+    intentPrompt.classList.add('visible');
+    trackProductEvent(
+      'intent_prompt_viewed',
+      { promptKey: 'post_conversion_features' },
+      projectId
+    );
+  }
+
+  async function submitIntent(selectedOption, optionalComment) {
+    if (!currentProjectId) return;
+    const buttons = intentPrompt.querySelectorAll('button');
+    buttons.forEach((button) => { button.disabled = true; });
+    const payload = {
+      projectId: String(currentProjectId),
+      promptKey: 'post_conversion_features',
+      selectedOption,
+      ...(optionalComment ? { optionalComment } : {})
+    };
+    const sent = await window.NeedlepointAnalytics?.submitIntent(payload);
+    buttons.forEach((button) => { button.disabled = false; });
+    const status = document.getElementById('intentThanks');
+    if (!sent) {
+      status.textContent = 'That could not be sent right now. Please try again.';
+      return;
+    }
+    sessionStorage.setItem(promptStateKey('intent_answered', currentProjectId), 'true');
+    document.getElementById('intentOptions').style.display = 'none';
+    document.getElementById('intentOtherForm').classList.remove('visible');
+    status.textContent = 'Thanks—this will help prioritize the next improvement.';
+  }
+
+  function showOutcomePrompt() {
+    if (!outcomePrompt || !currentProjectId) return;
+    const answered = sessionStorage.getItem(promptStateKey('outcome_answered', currentProjectId));
+    const dismissed = sessionStorage.getItem(promptStateKey('outcome_dismissed', currentProjectId));
+    if (answered || dismissed || outcomePrompt.classList.contains('visible')) return;
+    outcomePrompt.classList.add('visible');
+    trackProductEvent(
+      'outcome_prompt_viewed',
+      { promptKey: 'post_export_ready' },
+      currentProjectId
+    );
+  }
+
+  function recordExport(exportType) {
+    trackProductEvent('export_clicked', { exportType }, currentProjectId);
+    showOutcomePrompt();
+  }
+
+  function progressBucket() {
+    if (!currentResult?.grid?.length) return null;
+    const total = currentResult.grid.length * currentResult.grid[0].length;
+    const percent = (completedCells.size / total) * 100;
+    if (percent < 1) return 'under_1';
+    if (percent < 25) return '1_to_24';
+    if (percent < 50) return '25_to_49';
+    if (percent < 75) return '50_to_74';
+    if (percent < 100) return '75_to_99';
+    return '100';
+  }
+
+  function recordProgressMilestone() {
+    const bucket = progressBucket();
+    if (!bucket || !currentProjectId) return;
+    const key = `${currentProjectId}:${bucket}`;
+    if (progressBucketsSeen.has(key)) return;
+    progressBucketsSeen.add(key);
+    trackProductEvent('progress_marked', { completedPercentBucket: bucket }, currentProjectId);
+  }
+
+  function openFeedback(type = 'general', placement = 'sidebar') {
+    feedbackType = type;
+    document.getElementById('feedbackStatus').textContent = '';
+    trackProductEvent('feedback_opened', { placement }, currentProjectId);
+    if (typeof feedbackDialog.showModal === 'function') feedbackDialog.showModal();
+    else feedbackDialog.setAttribute('open', '');
+  }
+
+  document.getElementById('intentOptions').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-intent]');
+    if (!button) return;
+    if (button.dataset.intent === 'other') {
+      document.getElementById('intentOtherForm').classList.add('visible');
+      document.getElementById('intentComment').focus();
+      return;
+    }
+    void submitIntent(button.dataset.intent);
+  });
+
+  document.getElementById('intentOtherForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const comment = document.getElementById('intentComment').value.trim();
+    if (!comment) {
+      document.getElementById('intentComment').focus();
+      return;
+    }
+    void submitIntent('other', comment);
+  });
+
+  document.getElementById('dismissIntentBtn').addEventListener('click', () => {
+    if (currentProjectId) {
+      sessionStorage.setItem(promptStateKey('intent_dismissed', currentProjectId), 'true');
+      trackProductEvent(
+        'intent_prompt_dismissed',
+        { promptKey: 'post_conversion_features' },
+        currentProjectId
+      );
+    }
+    intentPrompt.classList.remove('visible');
+  });
+
+  document.getElementById('outcomeOptions').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-outcome]');
+    if (!button || !currentProjectId) return;
+    const response = button.dataset.outcome;
+    sessionStorage.setItem(promptStateKey('outcome_answered', currentProjectId), 'true');
+    trackProductEvent(
+      'outcome_prompt_responded',
+      { promptKey: 'post_export_ready', response },
+      currentProjectId
+    );
+    document.getElementById('outcomeOptions').style.display = 'none';
+    document.getElementById('outcomeThanks').textContent =
+      response === 'yes' ? 'Great—happy stitching!' : 'Thanks. Tell us what is missing so we can improve it.';
+    if (response === 'not_yet') window.setTimeout(() => openFeedback('export', 'outcome'), 350);
+  });
+
+  document.getElementById('dismissOutcomeBtn').addEventListener('click', () => {
+    if (currentProjectId) {
+      sessionStorage.setItem(promptStateKey('outcome_dismissed', currentProjectId), 'true');
+    }
+    outcomePrompt.classList.remove('visible');
+  });
+
+  document.getElementById('feedbackBtn').addEventListener('click', () => {
+    openFeedback('general', 'sidebar');
+  });
+
+  document.getElementById('feedbackConsent').addEventListener('change', (event) => {
+    const email = document.getElementById('feedbackEmail');
+    email.disabled = !event.target.checked;
+    if (!event.target.checked) email.value = '';
+  });
+  document.getElementById('feedbackEmail').disabled = true;
+
+  document.getElementById('feedbackForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const status = document.getElementById('feedbackStatus');
+    const submit = form.querySelector('.dialog-submit');
+    const sentiment = new FormData(form).get('sentiment');
+    const message = document.getElementById('feedbackMessage').value.trim();
+    const followUpConsent = document.getElementById('feedbackConsent').checked;
+    const email = document.getElementById('feedbackEmail').value.trim();
+    if (!sentiment && !message) {
+      status.textContent = 'Please choose an experience or add a short message.';
+      return;
+    }
+    if (followUpConsent && !email) {
+      status.textContent = 'Add an email address if you would like a follow-up.';
+      return;
+    }
+
+    submit.disabled = true;
+    status.textContent = 'Sending…';
+    const sent = await window.NeedlepointAnalytics?.submitFeedback({
+      ...(currentProjectId ? { projectId: String(currentProjectId) } : {}),
+      feedbackType,
+      ...(sentiment ? { sentiment } : {}),
+      reasons: [],
+      ...(message ? { message } : {}),
+      ...(followUpConsent ? { email } : {}),
+      followUpConsent,
+      website: document.getElementById('feedbackWebsite').value
+    });
+    submit.disabled = false;
+    if (!sent) {
+      status.textContent = 'That could not be sent right now. Please try again.';
+      return;
+    }
+    status.textContent = 'Thank you—your feedback was sent.';
+    form.reset();
+    document.getElementById('feedbackEmail').disabled = true;
+    window.setTimeout(() => feedbackDialog.close(), 900);
+  });
+
+  const analyticsEnabled = document.getElementById('analyticsEnabled');
+  analyticsEnabled.checked = window.NeedlepointAnalytics?.isEnabled() ?? false;
+  analyticsEnabled.addEventListener('change', () => {
+    window.NeedlepointAnalytics?.setEnabled(analyticsEnabled.checked);
+  });
+  document.getElementById('privacyBtn').addEventListener('click', () => {
+    analyticsEnabled.checked = window.NeedlepointAnalytics?.isEnabled() ?? false;
+    if (typeof privacyDialog.showModal === 'function') privacyDialog.showModal();
+    else privacyDialog.setAttribute('open', '');
+  });
   
   // ============================================
   // MOBILE MENU TOGGLE

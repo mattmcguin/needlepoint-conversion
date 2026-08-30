@@ -95,6 +95,8 @@
     <h2>Projects</h2>
     <div class="project-list" id="projectList"></div>
     <div class="sidebar-footer">
+      <button class="sidebar-link-btn" id="feedbackBtn" type="button">Send feedback</button>
+      <button class="sidebar-link-btn" id="privacyBtn" type="button">Privacy &amp; analytics</button>
       <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Collapse sidebar">
         <svg class="sidebar-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M15 6l-6 6 6 6"/>
@@ -225,6 +227,37 @@
         <button class="download-btn" id="downloadPng">Download Preview PNG</button>
         <button class="download-btn" id="downloadGridImage">Download Grid Image</button>
       </div>
+
+      <section class="research-prompt" id="intentPrompt" aria-labelledby="intentPromptTitle">
+        <button class="research-prompt-close" id="dismissIntentBtn" type="button" aria-label="Dismiss feature question">×</button>
+        <h2 id="intentPromptTitle">What would make this most useful next?</h2>
+        <p>Choose one. Your answer helps decide what gets built after the basics.</p>
+        <div class="intent-options" id="intentOptions">
+          <button type="button" data-intent="printable_pdf">A printable PDF</button>
+          <button type="button" data-intent="thread_matching">Real thread colors</button>
+          <button type="button" data-intent="pattern_cleanup">Cleaner patterns</button>
+          <button type="button" data-intent="cloud_sync">Projects on every device</button>
+          <button type="button" data-intent="physical_canvas">A painted canvas</button>
+          <button type="button" data-intent="other">Something else</button>
+        </div>
+        <form class="intent-other-form" id="intentOtherForm">
+          <label for="intentComment">What do you have in mind?</label>
+          <textarea id="intentComment" maxlength="500" rows="3"></textarea>
+          <button type="submit">Send answer</button>
+        </form>
+        <p class="research-thanks" id="intentThanks" role="status"></p>
+      </section>
+
+      <section class="research-prompt" id="outcomePrompt" aria-labelledby="outcomePromptTitle">
+        <button class="research-prompt-close" id="dismissOutcomeBtn" type="button" aria-label="Dismiss export question">×</button>
+        <h2 id="outcomePromptTitle">Does this feel ready to stitch?</h2>
+        <p>A quick answer helps us understand whether the export did its job.</p>
+        <div class="intent-options" id="outcomeOptions">
+          <button type="button" data-outcome="yes">Yes, I'm ready</button>
+          <button type="button" data-outcome="not_yet">Not quite</button>
+        </div>
+        <p class="research-thanks" id="outcomeThanks" role="status"></p>
+      </section>
       
       <div class="grid-wrapper">
         <div class="grid" id="grid"></div>
@@ -240,7 +273,41 @@
   <canvas id="processingCanvas" style="display:none;"></canvas>
   <div class="color-context-menu" id="colorContextMenu" aria-hidden="true"></div>
 
+  <dialog class="feedback-dialog" id="feedbackDialog" aria-labelledby="feedbackTitle">
+    <form method="dialog" class="dialog-close-form">
+      <button class="dialog-close" aria-label="Close feedback">×</button>
+    </form>
+    <form id="feedbackForm">
+      <h2 id="feedbackTitle">Help improve Needlepoint Maker</h2>
+      <p>What worked—or what got in your way? Please don't include private details about your photo.</p>
+      <fieldset class="feedback-sentiment">
+        <legend>How was your experience?</legend>
+        <label><input type="radio" name="sentiment" value="positive"> Good</label>
+        <label><input type="radio" name="sentiment" value="neutral"> Okay</label>
+        <label><input type="radio" name="sentiment" value="negative"> Frustrating</label>
+      </fieldset>
+      <label for="feedbackMessage">Your feedback</label>
+      <textarea id="feedbackMessage" maxlength="2000" rows="5" placeholder="Tell us what would make this better"></textarea>
+      <label class="consent-check"><input id="feedbackConsent" type="checkbox"> I'm open to a follow-up by email</label>
+      <label for="feedbackEmail">Email <span>(enabled only when follow-up is selected)</span></label>
+      <input id="feedbackEmail" type="email" maxlength="320" autocomplete="email">
+      <input class="honeypot" id="feedbackWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="form-status" id="feedbackStatus" role="status"></p>
+      <button class="dialog-submit" type="submit">Send feedback</button>
+    </form>
+  </dialog>
+
+  <dialog class="feedback-dialog privacy-dialog" id="privacyDialog" aria-labelledby="privacyTitle">
+    <form method="dialog" class="dialog-close-form">
+      <button class="dialog-close" aria-label="Close privacy settings">×</button>
+    </form>
+    <h2 id="privacyTitle">Privacy &amp; analytics</h2>
+    <p>Your photo, filename, pattern, and saved projects stay in this browser. We collect anonymous product events—such as creating or exporting a pattern—to understand what works.</p>
+    <label class="analytics-toggle"><input id="analyticsEnabled" type="checkbox"> Share anonymous usage analytics</label>
+    <p class="privacy-note">Turning this off clears the anonymous identifier from this browser. Feedback is only sent when you choose to submit it.</p>
+  </dialog>
+
+  <script src="analytics.js"></script>
   <script src="app.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

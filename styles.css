@@ -70,7 +70,8 @@ body {
 .sidebar.collapsed h2,
 .sidebar.collapsed .project-info,
 .sidebar.collapsed .project-delete,
-.sidebar.collapsed .sidebar-empty {
+.sidebar.collapsed .sidebar-empty,
+.sidebar.collapsed .sidebar-link-btn {
   display: none;
 }
 .sidebar.collapsed .new-project-btn {
@@ -999,6 +1000,206 @@ h2 {
   background: #5a7a5a;
 }
 
+/* Lightweight research prompts added before the larger experience redesign. */
+.sidebar-link-btn {
+  width: 100%;
+  padding: 7px 4px;
+  background: transparent;
+  border: 0;
+  color: #aeb5d4;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+}
+.sidebar-link-btn:hover {
+  color: #fff;
+}
+
+.research-prompt {
+  display: none;
+  position: relative;
+  margin: 0 auto 24px;
+  max-width: 760px;
+  padding: 20px 48px 20px 20px;
+  background: #24243e;
+  border: 1px solid #3f4166;
+  border-radius: 10px;
+  text-align: left;
+}
+.research-prompt.visible {
+  display: block;
+}
+.research-prompt h2 {
+  margin: 0 0 6px;
+  color: #fff;
+  font-size: 18px;
+}
+.research-prompt p {
+  margin: 0 0 14px;
+  color: #b8bdd2;
+  font-size: 14px;
+}
+.research-prompt-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: #b8bdd2;
+  cursor: pointer;
+  font-size: 24px;
+}
+.intent-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.intent-options button,
+.intent-other-form button {
+  padding: 9px 12px;
+  background: #35365a;
+  border: 1px solid #565985;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+}
+.intent-options button:hover,
+.intent-options button:focus-visible,
+.intent-other-form button:hover,
+.intent-other-form button:focus-visible {
+  background: #464875;
+  outline: 2px solid #9ca8ff;
+  outline-offset: 2px;
+}
+.intent-other-form {
+  display: none;
+  margin-top: 14px;
+}
+.intent-other-form.visible {
+  display: block;
+}
+.intent-other-form label,
+.intent-other-form textarea {
+  display: block;
+  width: 100%;
+}
+.intent-other-form textarea {
+  margin: 6px 0 10px;
+  padding: 10px;
+  background: #19192d;
+  border: 1px solid #565985;
+  border-radius: 6px;
+  color: #fff;
+  resize: vertical;
+}
+.research-prompt .research-thanks {
+  margin: 12px 0 0;
+  color: #b9e6bf;
+}
+
+.feedback-dialog {
+  width: min(560px, calc(100% - 32px));
+  padding: 28px;
+  background: #24243e;
+  border: 1px solid #565985;
+  border-radius: 12px;
+  color: #eee;
+}
+.feedback-dialog::backdrop {
+  background: rgba(8, 8, 20, 0.75);
+}
+.feedback-dialog h2 {
+  margin: 0 36px 8px 0;
+}
+.feedback-dialog p {
+  color: #b8bdd2;
+  line-height: 1.5;
+}
+.dialog-close-form {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.dialog-close {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: #b8bdd2;
+  cursor: pointer;
+  font-size: 26px;
+}
+.feedback-dialog fieldset {
+  margin: 18px 0;
+  padding: 0;
+  border: 0;
+}
+.feedback-sentiment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+.feedback-sentiment legend {
+  width: 100%;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.feedback-dialog > form > label:not(.consent-check),
+.feedback-dialog textarea,
+.feedback-dialog input[type="email"] {
+  display: block;
+  width: 100%;
+}
+.feedback-dialog textarea,
+.feedback-dialog input[type="email"] {
+  margin: 6px 0 14px;
+  padding: 10px;
+  background: #19192d;
+  border: 1px solid #565985;
+  border-radius: 6px;
+  color: #fff;
+}
+.feedback-dialog label span {
+  color: #9ba1bd;
+  font-weight: normal;
+}
+.consent-check,
+.analytics-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.dialog-submit {
+  padding: 11px 18px;
+  background: #4a6a8a;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+}
+.dialog-submit:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.form-status {
+  min-height: 20px;
+  margin: 12px 0;
+}
+.honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+}
+.privacy-dialog {
+  max-width: 520px;
+}
+.privacy-note {
+  font-size: 13px;
+}
+
 /* Mobile menu toggle button */
 .mobile-menu-toggle {
   display: none;
@@ -1054,6 +1255,7 @@ h2 {
   /* Mobile menu toggle */
   .mobile-menu-toggle {
     display: block;
+    z-index: 1601;
   }
   
   /* Sidebar becomes a slide-out drawer */
@@ -1063,7 +1265,7 @@ h2 {
     left: 0;
     bottom: 0;
     width: 280px;
-    z-index: 1000;
+    z-index: 1600;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     padding-top: 70px;
@@ -1077,6 +1279,9 @@ h2 {
   }
   .sidebar.open {
     transform: translateX(0);
+  }
+  .sidebar-overlay.visible {
+    z-index: 1599;
   }
   
   /* Main content takes full width */
@@ -1261,6 +1466,20 @@ h2 {
     margin: 0;
     padding: 14px 20px;
     font-size: 15px;
+  }
+
+  .research-prompt {
+    padding: 18px 44px 18px 16px;
+  }
+  .intent-options {
+    flex-direction: column;
+  }
+  .intent-options button {
+    width: 100%;
+    min-height: 44px;
+  }
+  .feedback-dialog {
+    padding: 22px 18px;
   }
 }
 

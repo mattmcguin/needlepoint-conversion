@@ -23,6 +23,7 @@ My wife enjoys needlepoint as a hobby, but finding patterns for specific images 
 - **Color Legend**: View all colors with their codes, hex values, and stitch counts
 - **Edit Settings**: Modify dimensions or colors of a converted project without re-uploading
 - **Project Management**: Automatically saves projects to browser storage for later access
+- **Privacy-conscious Product Feedback**: Anonymous usage events, feature-intent prompts, explicit feedback, and a browser-level analytics opt-out
 - **Multiple Export Options**:
   - Grid CSV (stitch-by-stitch color codes)
   - Legend CSV (color reference chart)
@@ -115,8 +116,11 @@ Example: A 4" × 4" project equals:
 ```
 needlepoint/
 ├── images/       # Favicon, logo, and OG images
+├── backend/      # Railway-hosted measurement and payment API
+├── docs/         # Implementation roadmap and runbooks
 ├── index.html    # Application markup
 ├── styles.css    # UI styling
+├── analytics.js  # Anonymous event delivery and privacy controls
 ├── app.js        # Core logic (quantization, rendering, storage)
 └── README.md     # This file
 ```
@@ -130,3 +134,8 @@ needlepoint/
 ## License
 
 MIT
+
+## Product Roadmap
+
+Backend, measurement, product, monetization, and SEO implementation work is
+tracked in the [implementation roadmap](docs/implementation/README.md).
