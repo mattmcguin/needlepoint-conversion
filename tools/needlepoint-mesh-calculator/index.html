@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Needlepoint Mesh Calculator: Stitches to Finished Size</title>
+  <meta name="description" content="Calculate the finished width and height of a needlepoint design from its stitch count and canvas mesh. Includes room for a practical working margin.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://needlepointmaker.com/tools/needlepoint-mesh-calculator/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Needlepoint Maker">
+  <meta property="og:url" content="https://needlepointmaker.com/tools/needlepoint-mesh-calculator/">
+  <meta property="og:title" content="Needlepoint Mesh Calculator">
+  <meta property="og:description" content="Convert a stitch count and canvas mesh into the finished dimensions of your needlepoint project.">
+  <meta property="og:image" content="https://needlepointmaker.com/images/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Needlepoint Mesh Calculator">
+  <meta name="twitter:description" content="Convert a stitch count and canvas mesh into finished needlepoint dimensions.">
+  <meta name="twitter:image" content="https://needlepointmaker.com/images/og-image.jpg">
+  <meta name="theme-color" content="#33483b">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="stylesheet" href="/content.css?v=20260830.1">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "Needlepoint Mesh Calculator",
+        "url": "https://needlepointmaker.com/tools/needlepoint-mesh-calculator/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://needlepointmaker.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Needlepoint mesh calculator", "item": "https://needlepointmaker.com/tools/needlepoint-mesh-calculator/" }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="/"><img src="/images/logo.png" alt="" width="38" height="38">Needlepoint Maker</a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="/guides/photo-to-needlepoint/">Guides</a>
+        <a href="/about/">About</a>
+        <a href="/support/">Support</a>
+        <a class="nav-cta" href="/">Make a pattern</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="content-shell">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Mesh calculator</li></ol></nav>
+    <header class="content-hero compact">
+      <div>
+        <p class="eyebrow">Free planning tool</p>
+        <h1>Needlepoint mesh calculator</h1>
+        <p class="lede">Enter the number of stitches in your chart and the mesh of your canvas to calculate the finished design size before you cut canvas or buy a frame.</p>
+      </div>
+    </header>
+
+    <section class="calculator" aria-labelledby="calculatorTitle">
+      <form class="calculator-fields" id="meshCalculator">
+        <div class="field">
+          <label for="stitchWidth">Width in stitches</label>
+          <input id="stitchWidth" name="stitchWidth" type="number" min="1" max="1000" value="72" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="stitchHeight">Height in stitches</label>
+          <input id="stitchHeight" name="stitchHeight" type="number" min="1" max="1000" value="72" inputmode="numeric">
+        </div>
+        <div class="field field-full">
+          <label for="meshCount">Canvas mesh</label>
+          <select id="meshCount" name="meshCount">
+            <option value="10">10 mesh</option>
+            <option value="12">12 mesh</option>
+            <option value="13">13 mesh</option>
+            <option value="14">14 mesh</option>
+            <option value="18" selected>18 mesh</option>
+          </select>
+          <small>Mesh means canvas intersections per inch.</small>
+        </div>
+      </form>
+      <div class="calculator-result" aria-live="polite">
+        <span id="calculatorTitle">Finished design size</span>
+        <strong id="finishedSize">4 × 4 in</strong>
+        <p id="canvasSize">Allow at least 8 × 8 inches of canvas for a 2-inch working margin on every side.</p>
+      </div>
+    </section>
+
+    <div class="article-layout">
+      <article class="article">
+        <h2>How the needlepoint size calculation works</h2>
+        <p>Divide the number of stitches by the canvas mesh. A design that is 72 stitches wide on 18-mesh canvas is 72 ÷ 18, or 4 inches wide. The same 72-stitch chart on 12 mesh finishes at 6 inches wide because each stitch occupies more space.</p>
+        <div class="article-callout"><p><strong>Formula:</strong> stitches ÷ mesh count = finished inches. Calculate width and height separately.</p></div>
+
+        <h2>Finished design size is not the canvas cut size</h2>
+        <p>The calculation describes the stitched area. You still need unstitched canvas around it so the piece can be held, blocked, and finished. A practical starting point is 2 inches on every side, which adds 4 inches to both the finished width and finished height. Your finisher or project type may call for a different allowance.</p>
+
+        <h2>Examples at common mesh counts</h2>
+        <table class="comparison-table">
+          <thead><tr><th>Chart</th><th>12 mesh</th><th>13 mesh</th><th>18 mesh</th></tr></thead>
+          <tbody>
+            <tr><td>48 × 48 stitches</td><td>4 × 4 in</td><td>3.69 × 3.69 in</td><td>2.67 × 2.67 in</td></tr>
+            <tr><td>72 × 72 stitches</td><td>6 × 6 in</td><td>5.54 × 5.54 in</td><td>4 × 4 in</td></tr>
+            <tr><td>108 × 144 stitches</td><td>9 × 12 in</td><td>8.31 × 11.08 in</td><td>6 × 8 in</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Choosing between size and detail</h2>
+        <p>Changing mesh does not change the number of squares in the chart. It changes how tightly those squares fit into an inch. A higher mesh count makes the same chart smaller and allows finer detail; a lower mesh count makes it larger and is often easier to see and faster to stitch.</p>
+        <p>Needlepoint Maker currently creates patterns for 12 and 18 mesh. Use the calculator for other charted designs, then read the <a href="/guides/choosing-needlepoint-mesh/">mesh-size guide</a> before choosing canvas and thread.</p>
+      </article>
+      <aside class="article-aside">
+        <strong>Ready to size a photo?</strong>
+        <p>Choose a photo, finished dimensions, and either 12 or 18 mesh. The converter handles the stitch-count math.</p>
+        <a class="button-link" href="/">Make a free pattern</a>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer"><div class="site-footer-inner"><div><strong>Needlepoint Maker</strong><small>Free tools for turning personal photos into stitchable canvases.</small></div><nav aria-label="Footer"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/feedback/">Feedback</a><a href="/support/">Support</a></nav></div></footer>
+  <script src="/analytics.js?v=20260830.1"></script>
+  <script src="/calculator.js?v=20260830.1"></script>
+</body>
+</html>

@@ -41,6 +41,12 @@ export interface ProductSummary {
   events: Array<{ name: string; count: number }>;
   intent: Array<{ promptKey: string; option: string; count: number }>;
   feedback: Array<{ type: string; sentiment: string | null; count: number }>;
+  acquisition: Array<{
+    landingPage: string;
+    sessions: number;
+    convertedSessions: number;
+    exportedSessions: number;
+  }>;
 }
 
 export interface ProductDatabase extends HealthDatabase {
@@ -80,7 +86,7 @@ export function createDatabase(databaseUrl: string) {
       await client.insert(schema.feedback).values(feedback);
     },
     async getProductSummary(since: Date): Promise<ProductSummary> {
-      const [eventsResult, intentResult, feedbackResult] = await Promise.all([
+      const [eventsResult, intentResult, feedbackResult, acquisitionResult] = await Promise.all([
         pool.query<{ name: string; count: string }>(
           `select event_name as name, count(*)::text as count
            from analytics_events
@@ -108,6 +114,39 @@ export function createDatabase(databaseUrl: string) {
            group by feedback_type, sentiment
            order by feedback_type, sentiment`,
           [since]
+        ),
+        pool.query<{
+          landing_page: string;
+          sessions: string;
+          converted_sessions: string;
+          exported_sessions: string;
+        }>(
+          `with first_page_views as (
+             select distinct on (session_id)
+               session_id,
+               coalesce(nullif(properties->>'landingPage', ''), path) as landing_page
+             from analytics_events
+             where created_at >= $1 and event_name = 'page_view'
+             order by session_id, occurred_at, created_at
+           ), session_outcomes as (
+             select
+               session_id,
+               bool_or(event_name = 'conversion_completed') as converted,
+               bool_or(event_name = 'export_clicked') as exported
+             from analytics_events
+             where created_at >= $1
+             group by session_id
+           )
+           select
+             first_page_views.landing_page,
+             count(*)::text as sessions,
+             count(*) filter (where session_outcomes.converted)::text as converted_sessions,
+             count(*) filter (where session_outcomes.exported)::text as exported_sessions
+           from first_page_views
+           left join session_outcomes using (session_id)
+           group by first_page_views.landing_page
+           order by count(*) desc, first_page_views.landing_page`,
+          [since]
         )
       ]);
 
@@ -126,6 +165,12 @@ export function createDatabase(databaseUrl: string) {
           type: row.type,
           sentiment: row.sentiment,
           count: Number(row.count)
+        })),
+        acquisition: acquisitionResult.rows.map((row) => ({
+          landingPage: row.landing_page,
+          sessions: Number(row.sessions),
+          convertedSessions: Number(row.converted_sessions),
+          exportedSessions: Number(row.exported_sessions)
         }))
       };
     },

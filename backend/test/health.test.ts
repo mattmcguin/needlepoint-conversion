@@ -25,7 +25,8 @@ function databaseWithCheck(check: ProductDatabase['check']): ProductDatabase {
       since: since.toISOString(),
       events: [],
       intent: [],
-      feedback: []
+      feedback: [],
+      acquisition: []
     })),
     deleteProductDataBefore: vi.fn(async () => 0)
   };

@@ -2328,6 +2328,12 @@ document.addEventListener('DOMContentLoaded', () => {
   privacyHeroBtn?.addEventListener('click', () => {
     document.getElementById('privacyBtn').click();
   });
+  const entryAction = new URLSearchParams(window.location.search);
+  if (entryAction.get('feedback') === '1') {
+    window.setTimeout(() => openFeedback('general', 'sidebar'), 0);
+  } else if (entryAction.get('privacy') === '1') {
+    window.setTimeout(() => document.getElementById('privacyBtn').click(), 0);
+  }
   continueStitchingBtn?.addEventListener('click', () => {
     document.getElementById('gridWrapper')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });

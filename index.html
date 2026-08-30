@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- Primary Meta Tags -->
-  <title>Free Needlepoint Pattern Converter | Photo to Cross Stitch Pattern Maker</title>
-  <meta name="title" content="Free Needlepoint Pattern Converter | Photo to Cross Stitch Pattern Maker">
-  <meta name="description" content="Convert any photo to a needlepoint or cross-stitch pattern for free. Customize canvas size, control colors, and download printable grid patterns with stitch guides.">
-  <meta name="keywords" content="needlepoint pattern generator, photo to needlepoint, cross stitch pattern maker, convert image to cross stitch, free pattern generator, needlepoint chart maker, cross stitch from photo, embroidery pattern converter, needlepoint pattern maker, image to needlepoint pattern">
+  <title>Photo to Needlepoint Pattern Converter | Needlepoint Maker</title>
+  <meta name="description" content="Turn a photo into a free needlepoint pattern in your browser. Choose 12 or 18 mesh, set the finished size and colors, then download a stitchable grid.">
   <meta name="author" content="Needlepoint Maker">
   <meta name="robots" content="index, follow">
   
@@ -18,16 +16,19 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://needlepointmaker.com/">
-  <meta property="og:title" content="Free Needlepoint Pattern Converter | Photo to Cross Stitch Pattern Maker">
-  <meta property="og:description" content="Transform any image into a stitchable needlepoint or cross-stitch pattern. Free online tool with color control and downloadable charts.">
+  <meta property="og:site_name" content="Needlepoint Maker">
+  <meta property="og:title" content="Photo to Needlepoint Pattern Converter">
+  <meta property="og:description" content="Turn your own photo into a free, stitchable needlepoint grid. Your photo stays in your browser.">
   <meta property="og:image" content="https://needlepointmaker.com/images/og-image.jpg">
+  <meta property="og:image:alt" content="A photo transformed into a color-coded needlepoint canvas pattern">
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://needlepointmaker.com/">
-  <meta name="twitter:title" content="Free Needlepoint Pattern Converter | Photo to Cross Stitch Pattern Maker">
-  <meta name="twitter:description" content="Transform any image into a stitchable needlepoint or cross-stitch pattern. Free online tool with color control and downloadable charts.">
+  <meta name="twitter:title" content="Photo to Needlepoint Pattern Converter">
+  <meta name="twitter:description" content="Turn your own photo into a free, stitchable needlepoint grid. Your photo stays in your browser.">
   <meta name="twitter:image" content="https://needlepointmaker.com/images/og-image.jpg">
+  <meta name="twitter:image:alt" content="A photo transformed into a color-coded needlepoint canvas pattern">
   
   <!-- Theme Color -->
   <meta name="theme-color" content="#33483b">
@@ -41,29 +42,43 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Needlepoint Pattern Converter",
-    "description": "Convert any photo to a needlepoint or cross-stitch pattern for free. Customize canvas size, control colors, and download printable grid patterns.",
-    "url": "https://needlepointmaker.com/",
-    "applicationCategory": "DesignApplication",
-    "operatingSystem": "Web Browser",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "featureList": [
-      "Image to pattern conversion",
-      "Customizable canvas dimensions",
-      "Color palette control",
-      "Interactive grid view",
-      "CSV and PNG exports",
-      "Project saving"
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://needlepointmaker.com/#website",
+        "url": "https://needlepointmaker.com/",
+        "name": "Needlepoint Maker"
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://needlepointmaker.com/#app",
+        "name": "Needlepoint Maker",
+        "description": "Turn a photo into a customizable needlepoint pattern with a color legend, progress tracker, and downloadable grid.",
+        "url": "https://needlepointmaker.com/",
+        "image": "https://needlepointmaker.com/images/og-image.jpg",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Any operating system with a modern web browser",
+        "browserRequirements": "Requires JavaScript, Canvas, and local storage",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Photo to needlepoint pattern conversion",
+          "12 and 18 mesh canvas sizing",
+          "Adjustable color palette",
+          "Interactive progress tracking",
+          "CSV and PNG pattern exports",
+          "Private browser-based photo processing"
+        ]
+      }
     ]
   }
   </script>
   
-  <link rel="stylesheet" href="styles.css?v=20260829.1">
+  <link rel="stylesheet" href="styles.css?v=20260830.1">
 </head>
 <body class="guided-studio">
   <!-- Mobile Menu Toggle -->
@@ -83,7 +98,7 @@
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
   
   <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar" aria-label="Projects and site navigation">
     <div class="sidebar-logo">
       <img src="images/logo.png" alt="Needlepoint Maker" width="60" height="60">
       <span>Needlepoint Maker</span>
@@ -95,6 +110,12 @@
     <h2>Your projects</h2>
     <div class="project-list" id="projectList"></div>
     <div class="sidebar-footer">
+      <nav class="sidebar-site-nav" aria-label="Learn and support">
+        <a href="/guides/photo-to-needlepoint/">How-to guides</a>
+        <a href="/tools/needlepoint-mesh-calculator/">Mesh calculator</a>
+        <a href="/about/">About</a>
+        <a href="/support/">Support</a>
+      </nav>
       <button class="sidebar-link-btn" id="feedbackBtn" type="button">Send feedback</button>
       <button class="sidebar-link-btn" id="privacyBtn" type="button">Privacy &amp; analytics</button>
       <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Collapse sidebar">
@@ -104,10 +125,10 @@
         <span>Collapse</span>
       </button>
     </div>
-  </div>
+  </aside>
   
   <!-- Main Content -->
-  <div class="main-content">
+  <main class="main-content">
     <div class="container">
       <header class="page-hero">
         <div>
@@ -227,7 +248,7 @@
       <div class="result-header">
         <div class="result-title-group">
           <p class="page-kicker">Your pattern</p>
-          <h1 id="patternTitle">Needlepoint canvas</h1>
+          <h2 id="patternTitle">Needlepoint canvas</h2>
           <p class="pattern-info" id="patternInfo"></p>
         </div>
         <button id="editProjectBtn" class="edit-settings-btn">
@@ -320,7 +341,42 @@
       </section>
     </div>
   </div>
-  </div>
+
+    <section class="home-learn" aria-labelledby="learnTitle">
+      <div class="home-learn-intro">
+        <p class="page-kicker">From photo to canvas</p>
+        <h2 id="learnTitle">Make a needlepoint pattern from your own photo</h2>
+        <p>Needlepoint Maker turns the pixels in a photo into one square per canvas intersection. Choose a finished size, select 12 or 18 mesh, limit the palette, and download a grid you can follow while stitching. Conversion happens on your device, so the photo itself is never uploaded.</p>
+      </div>
+      <ol class="home-how-it-works">
+        <li><strong>Choose a clear photo.</strong><span>Simple shapes, good contrast, and an uncluttered background produce the cleanest chart.</span></li>
+        <li><strong>Size the canvas.</strong><span>Pick a project preset or enter the dimensions and mesh count you plan to stitch.</span></li>
+        <li><strong>Refine and export.</strong><span>Control the number of colors, edit individual squares, then save a grid or color legend.</span></li>
+      </ol>
+      <div class="home-resource-grid">
+        <a href="/tools/needlepoint-mesh-calculator/"><span>Planning tool</span><strong>Needlepoint mesh calculator</strong><small>Convert stitch counts and mesh into a finished size.</small></a>
+        <a href="/guides/photo-to-needlepoint/"><span>Step-by-step guide</span><strong>How to turn a photo into needlepoint</strong><small>Go from image choice to a canvas-ready chart.</small></a>
+        <a href="/guides/choosing-needlepoint-mesh/"><span>Canvas guide</span><strong>Choose the right mesh size</strong><small>Compare detail, finished size, and stitching speed.</small></a>
+        <a href="/examples/bear-photo-to-needlepoint/"><span>Real example</span><strong>Bear photo to 18-mesh pattern</strong><small>See the decisions behind a 72 × 72 canvas.</small></a>
+      </div>
+      <div class="home-faq">
+        <h2>Common questions</h2>
+        <details><summary>What photos make the best needlepoint patterns?</summary><p>Start with one clear subject, strong edges, even lighting, and a background that does not compete with the subject. Crop tightly before converting.</p></details>
+        <details><summary>What does 18 mesh mean?</summary><p>Mesh is the number of canvas intersections per inch. At 18 mesh, a chart that is 72 stitches wide finishes at 4 inches wide.</p></details>
+        <details><summary>Does Needlepoint Maker upload my photo?</summary><p>No. Image conversion and project saving happen in your browser. Anonymous product events never include the photo, filename, grid, or saved project.</p></details>
+      </div>
+    </section>
+
+    <footer class="home-footer">
+      <span>Needlepoint Maker</span>
+      <nav aria-label="Footer">
+        <a href="/about/">About</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/feedback/">Feedback</a>
+        <a href="/support/">Support</a>
+      </nav>
+    </footer>
+  </main>
   
   <!-- Hidden canvas for image processing -->
   <canvas id="processingCanvas" style="display:none;"></canvas>
@@ -360,7 +416,7 @@
     <p class="privacy-note">Turning this off clears the anonymous identifier from this browser. Feedback is only sent when you choose to submit it.</p>
   </dialog>
 
-  <script src="analytics.js?v=20260829.1"></script>
-  <script src="app.js?v=20260829.1"></script>
+  <script src="analytics.js?v=20260830.1"></script>
+  <script src="app.js?v=20260830.1"></script>
 </body>
 </html>

@@ -25,7 +25,10 @@ function createDatabase(): ProductDatabase {
       since: since.toISOString(),
       events: [{ name: 'conversion_completed', count: 2 }],
       intent: [],
-      feedback: []
+      feedback: [],
+      acquisition: [
+        { landingPage: '/', sessions: 3, convertedSessions: 2, exportedSessions: 1 }
+      ]
     })),
     deleteProductDataBefore: vi.fn(async () => 0)
   };
@@ -182,6 +185,9 @@ describe('product measurement routes', () => {
     expect(authorized.statusCode).toBe(200);
     expect(authorized.json().events).toEqual([
       { name: 'conversion_completed', count: 2 }
+    ]);
+    expect(authorized.json().acquisition).toEqual([
+      { landingPage: '/', sessions: 3, convertedSessions: 2, exportedSessions: 1 }
     ]);
   });
 });
