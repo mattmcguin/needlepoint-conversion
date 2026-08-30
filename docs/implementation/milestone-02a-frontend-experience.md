@@ -56,6 +56,7 @@ production direction.
 - [x] Improve hierarchy, instructional copy, empty states, and privacy reassurance
 - [x] Make progress tracking and pattern editing visually distinct and understandable
 - [x] Group display controls and exports around the jobs users are trying to complete
+- [x] Give the pattern canvas full workspace width and add a fit-to-width overview
 - [x] Improve sidebar project navigation and the returning-user experience
 - [ ] Improve touch targets, responsive layout, keyboard navigation, and focus states
 - [ ] Integrate intent, feedback, privacy, and support surfaces without interrupting creation
@@ -72,6 +73,7 @@ Use this checklist before each production release of the redesign:
 - [x] Progress mode marks a stitch, persists it, and updates the visible summary.
 - [x] Edit-colors mode exposes the palette control without being confused with progress mode.
 - [x] Canvas display controls, thread legend, edit setup, and export controls remain reachable.
+- [x] A 72 × 72 pattern uses the full desktop workspace and can fit within a phone viewport.
 - [x] Feedback and privacy dialogs remain available without interrupting creation.
 - [x] The create and pattern views have no page-level horizontal overflow at 390px.
 - [ ] Verify all four downloaded file types after the final release build.

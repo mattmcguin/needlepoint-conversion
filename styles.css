@@ -1912,7 +1912,14 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
   font-weight: 800;
 }
 .guided-studio .edit-settings-btn:hover { background: #f4eadc; }
-.pattern-layout { display: grid; grid-template-columns: 190px minmax(440px, 1fr) 250px; gap: 14px; }
+.pattern-layout {
+  display: grid;
+  grid-template-areas:
+    "canvas canvas"
+    "progress legend";
+  grid-template-columns: minmax(250px, .32fr) minmax(0, 1fr);
+  gap: 16px;
+}
 .progress-panel,
 .canvas-panel,
 .legend-panel {
@@ -1922,6 +1929,7 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
   border-radius: 15px;
 }
 .progress-panel {
+  grid-area: progress;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -1954,7 +1962,12 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
 .continue-stitching-btn { width: 100%; min-height: 38px; background: var(--studio-green); border: 0; border-radius: 9px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 850; }
 .continue-stitching-btn:hover { background: #263a2e; }
 .progress-panel .progress-hint { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--studio-line); text-align: left; }
-.canvas-panel { min-width: 0; overflow: hidden; }
+.canvas-panel {
+  grid-area: canvas;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
 .guided-studio .controls,
 .guided-studio .controls.visible {
   display: flex;
@@ -2013,10 +2026,13 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
   font-weight: 750;
 }
 .guided-studio .grid-wrapper {
-  min-height: 590px;
+  height: clamp(540px, 70vh, 760px);
+  min-height: 0;
   margin: 0;
   padding: 34px;
+  overflow: auto;
   background: #e9e3d9;
+  scrollbar-gutter: stable both-edges;
   text-align: center;
 }
 .guided-studio .grid {
@@ -2055,10 +2071,14 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
 }
 .guided-studio .download-btn:hover { background: #f3e9dc; }
 .guided-studio .download-btn.download-primary { background: var(--studio-brown); border-color: var(--studio-brown); color: #fff; }
-.legend-panel { padding: 18px 14px; }
+.legend-panel {
+  grid-area: legend;
+  min-width: 0;
+  padding: 18px 14px;
+}
 .legend-panel h2 { margin: 0; font-family: Georgia, serif; font-size: 25px; font-weight: 500; }
 .legend-help { margin: 6px 0 14px; color: var(--studio-muted); font-size: 9px; line-height: 1.45; }
-.guided-studio .legend { display: grid; grid-template-columns: 1fr; gap: 5px; }
+.guided-studio .legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 5px; }
 .guided-studio .legend-item {
   min-width: 0;
   min-height: 54px;
@@ -2132,8 +2152,25 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
 }
 
 @media (max-width: 1160px) {
-  .pattern-layout { grid-template-columns: 175px minmax(400px, 1fr); }
-  .legend-panel { grid-column: 1 / -1; }
+  .pattern-layout {
+    grid-template-areas:
+      "canvas"
+      "progress"
+      "legend";
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .progress-panel {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr) minmax(140px, 180px);
+    align-items: center;
+    column-gap: 16px;
+    text-align: left;
+  }
+  .progress-panel .progress-ring { grid-row: 1 / 3; }
+  .progress-panel h2 { margin-top: 0; }
+  .progress-track { margin: 8px 0 0; }
+  .continue-stitching-btn { grid-column: 3; grid-row: 1 / 3; }
+  .progress-panel .progress-hint { display: none; }
   .guided-studio .legend { grid-template-columns: repeat(3, 1fr); }
 }
 
@@ -2165,7 +2202,14 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
   .guided-studio .result-header { align-items: stretch; flex-direction: column; padding-inline: 3px; }
   .result-title-group h1 { font-size: 30px; }
   .guided-studio .edit-settings-btn { width: 100%; max-width: none; justify-content: center; }
-  .pattern-layout { display: flex; flex-direction: column; }
+  .pattern-layout {
+    display: grid;
+    grid-template-areas:
+      "canvas"
+      "progress"
+      "legend";
+    grid-template-columns: minmax(0, 1fr);
+  }
   .pattern-layout > * { width: 100%; max-width: 100%; align-self: stretch; }
   .progress-panel { display: grid; grid-template-columns: 70px 1fr; text-align: left; }
   .progress-panel .progress-ring { width: 62px; grid-row: 1 / 4; }
@@ -2174,6 +2218,8 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
   .progress-panel h2 { margin-top: 0; }
   .progress-track,
   .continue-stitching-btn { grid-column: 2; }
+  .progress-track,
+  .continue-stitching-btn { grid-row: auto; }
   .progress-panel .progress-hint { display: none; }
   .guided-studio .controls,
   .guided-studio .controls.visible { align-items: stretch; flex-direction: column; }
@@ -2184,7 +2230,7 @@ body.guided-studio:has(.result-section.visible) .page-hero { display: none; }
   .canvas-display-controls > button { flex: 1; }
   .guided-studio .controls label { width: 100%; justify-content: center; }
   .guided-studio .controls input[type="range"] { width: min(220px, 62vw); }
-  .guided-studio .grid-wrapper { min-height: 410px; margin: 0; padding: 14px; }
+  .guided-studio .grid-wrapper { height: min(64vh, 560px); min-height: 390px; margin: 0; padding: 14px; }
   .guided-studio .grid { border-width: 6px; }
   .guided-studio .download-section,
   .guided-studio .download-section.visible { align-items: stretch; flex-direction: column; }

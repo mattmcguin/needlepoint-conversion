@@ -369,6 +369,31 @@ function renderGrid(cellSize) {
   updateProgressSummary();
 }
 
+function fitGridToWidth() {
+  if (!currentResult?.grid?.length) return;
+
+  const gridWrapper = document.getElementById('gridWrapper');
+  const cellSizeInput = document.getElementById('cellSize');
+  const cellSizeVal = document.getElementById('cellSizeVal');
+  const toggleCodesBtn = document.getElementById('toggleCodes');
+  const cols = currentResult.grid[0].length;
+  const wrapperStyles = window.getComputedStyle(gridWrapper);
+  const horizontalPadding = parseFloat(wrapperStyles.paddingLeft) + parseFloat(wrapperStyles.paddingRight);
+  const canvasFrame = 24;
+  const availableWidth = Math.max(0, gridWrapper.clientWidth - horizontalPadding - canvasFrame);
+  const fittedSize = Math.max(4, Math.min(30, Math.floor(availableWidth / cols)));
+
+  if (fittedSize < 8 && showCodes) {
+    showCodes = false;
+    toggleCodesBtn.textContent = 'Show codes';
+  }
+
+  cellSizeInput.value = fittedSize;
+  cellSizeVal.textContent = `${fittedSize}px`;
+  renderGrid(fittedSize);
+  gridWrapper.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+}
+
 function updateProgressSummary() {
   if (!currentResult?.grid?.length) return;
   const total = currentResult.grid.length * currentResult.grid[0].length;
@@ -723,6 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const convertBtn = document.getElementById('convertBtn');
   const cellSizeInput = document.getElementById('cellSize');
   const cellSizeVal = document.getElementById('cellSizeVal');
+  const fitCanvasBtn = document.getElementById('fitCanvas');
   const toggleCodesBtn = document.getElementById('toggleCodes');
   const toggleGridBtn = document.getElementById('toggleGrid');
   const downloadGridBtn = document.getElementById('downloadGrid');
@@ -1509,6 +1535,8 @@ document.addEventListener('DOMContentLoaded', () => {
     cellSizeVal.textContent = size + 'px';
     renderGrid(parseInt(size));
   });
+
+  fitCanvasBtn.addEventListener('click', fitGridToWidth);
   
   toggleCodesBtn.addEventListener('click', () => {
     showCodes = !showCodes;
