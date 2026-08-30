@@ -42,7 +42,7 @@ registered.
 - [ ] Add `api.needlepointmaker.com` after staging is stable.
 - [ ] Update `APP_ORIGINS` only with explicit production and local origins.
 - [ ] Enable automated PostgreSQL backups.
-- [ ] Schedule `npm run data:cleanup` monthly after measurement is released.
+- [x] Run retention cleanup in the API process at startup and once daily.
 
 ## Smoke tests
 

@@ -32,7 +32,7 @@ their photos.
 
 - [x] Deploy migration `0001_violet_moonstone.sql` and the API routes to Railway
 - [ ] Add a sealed 32+ character `REPORT_TOKEN` Railway variable
-- [ ] Schedule `npm run data:cleanup` at least monthly
+- [x] Run retention cleanup at API startup and once daily
 - [ ] Release `analytics.js` and the frontend prompt changes
 - [x] Run production readiness, event acceptance, CORS, and rejected-property smoke tests
 - [ ] Run production intent, feedback, opt-out, and aggregate-report smoke tests after the frontend release

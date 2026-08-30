@@ -28,7 +28,7 @@ pre-deploy command once GitHub deployments are connected.
 | `npm run check` | Build and test |
 | `npm run db:generate` | Generate migrations from the Drizzle schema |
 | `npm run db:migrate` | Apply generated migrations |
-| `npm run data:cleanup` | Delete product research data older than `DATA_RETENTION_DAYS` |
+| `npm run data:cleanup` | Manually delete product research data older than `DATA_RETENTION_DAYS` |
 
 ## Health endpoints
 
@@ -44,6 +44,8 @@ pre-deploy command once GitHub deployments are connected.
 
 The API rejects unknown fields, including filenames, photo data, full URLs, and
 pattern contents. Event IDs are unique so retried batches do not double-count.
+Expired product-research data is cleaned at process startup and once daily;
+`npm run data:cleanup` remains available for manual operations.
 
 Deployment steps are tracked in
 [`docs/implementation/railway-setup.md`](../docs/implementation/railway-setup.md).

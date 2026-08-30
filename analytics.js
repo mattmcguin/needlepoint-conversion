@@ -3,7 +3,7 @@
 
   const API_BASE_URL = ['localhost', '127.0.0.1'].includes(window.location.hostname)
     ? 'http://localhost:3000'
-    : 'https://needlepoint-api-production.up.railway.app';
+    : 'https://api.needlepointmaker.com';
   const VISITOR_KEY = 'needlepoint_analytics_visitor';
   const SESSION_KEY = 'needlepoint_analytics_session';
   const OPT_OUT_KEY = 'needlepoint_analytics_opt_out';
