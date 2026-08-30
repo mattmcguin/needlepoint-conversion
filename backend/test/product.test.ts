@@ -86,6 +86,39 @@ describe('product measurement routes', () => {
     expect(database.insertAnalyticsEvents).toHaveBeenCalledOnce();
   });
 
+  it('accepts a palette color change event without recording the colors', async () => {
+    const database = createDatabase();
+    const app = buildApp({ config, database, logger: false });
+    apps.push(app);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/events/batch',
+      payload: {
+        anonymousId: randomUUID(),
+        sessionId: randomUUID(),
+        events: [
+          {
+            eventId: randomUUID(),
+            projectId: '123456789',
+            eventName: 'palette_color_changed',
+            path: '/',
+            properties: { source: 'legend' },
+            occurredAt: new Date().toISOString()
+          }
+        ]
+      }
+    });
+
+    expect(response.statusCode).toBe(202);
+    expect(database.insertAnalyticsEvents).toHaveBeenCalledWith([
+      expect.objectContaining({
+        eventName: 'palette_color_changed',
+        properties: { source: 'legend' }
+      })
+    ]);
+  });
+
   it('rejects unknown properties that could leak photo data', async () => {
     const database = createDatabase();
     const app = buildApp({ config, database, logger: false });

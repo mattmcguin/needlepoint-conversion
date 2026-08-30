@@ -69,7 +69,8 @@ const eventProperties = {
   outcome_prompt_responded: z
     .object({ promptKey: z.literal('post_export_ready'), response: z.enum(['yes', 'not_yet']) })
     .strict(),
-  feedback_opened: z.object({ placement: z.enum(['sidebar', 'intent', 'outcome']) }).strict()
+  feedback_opened: z.object({ placement: z.enum(['sidebar', 'intent', 'outcome']) }).strict(),
+  palette_color_changed: z.object({ source: z.literal('legend') }).strict()
 } as const;
 
 type EventName = keyof typeof eventProperties;

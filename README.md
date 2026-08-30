@@ -19,6 +19,7 @@ My wife enjoys needlepoint as a hobby, but finding patterns for specific images 
 - **Flexible Dimensions**: Enter dimensions in inches or stitches, with automatic conversion based on mesh count
 - **Aspect Ratio Lock**: Optionally lock aspect ratio to prevent image distortion
 - **Color Palette Control**: Limit the number of colors using median cut quantization
+- **Editable Palette Colors**: Select a legend color, highlight every matching stitch, and replace that color across the pattern
 - **Interactive Grid**: Zoom in/out, toggle color codes, and show/hide grid lines
 - **Color Legend**: View all colors with their codes, hex values, and stitch counts
 - **Edit Settings**: Modify dimensions or colors of a converted project without re-uploading

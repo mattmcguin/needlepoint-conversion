@@ -447,21 +447,22 @@ function renderLegend() {
     const item = document.createElement('div');
     item.className = 'legend-item';
     item.dataset.code = code;
-    item.setAttribute('role', 'button');
-    item.tabIndex = 0;
     if (selectedLegendCode === code) {
       item.classList.add('active');
-      item.setAttribute('aria-pressed', 'true');
-    } else {
-      item.setAttribute('aria-pressed', 'false');
     }
     item.innerHTML = `
-      <div class="legend-swatch" style="background:${colorMap[code]}"></div>
-      <div class="legend-info">
-        <strong>${code}</strong>
-        <span class="hex">${colorMap[code]}</span>
-        <span class="count">${colorCounts[code]} stitches</span>
-      </div>
+      <label class="legend-swatch-control" title="Change color ${code}">
+        <span class="sr-only">Change color ${code}</span>
+        <input class="legend-color-picker" type="color" value="${colorMap[code]}" data-code="${code}" aria-label="Change color ${code}, currently ${colorMap[code]}">
+        <span class="legend-edit-mark" aria-hidden="true">✎</span>
+      </label>
+      <button class="legend-focus" type="button" data-code="${code}" aria-pressed="${selectedLegendCode === code}" aria-label="Focus color ${code}, ${colorMap[code]}">
+        <span class="legend-info">
+          <strong>${code}</strong>
+          <span class="hex">${colorMap[code]}</span>
+          <span class="count">${colorCounts[code]} stitches</span>
+        </span>
+      </button>
     `;
     legendEl.appendChild(item);
   }
@@ -1737,24 +1738,31 @@ document.addEventListener('DOMContentLoaded', () => {
     img.src = project.originalImage;
   });
   
-  legendEl.addEventListener('click', (e) => {
-    const item = e.target.closest('.legend-item');
-    if (!item || !item.dataset.code) return;
-    const code = item.dataset.code;
-    selectedLegendCode = selectedLegendCode === code ? null : code;
+  function updateLegendSelectionState() {
+    legendEl.querySelectorAll('.legend-item').forEach((item) => {
+      const isActive = item.dataset.code === selectedLegendCode;
+      item.classList.toggle('active', isActive);
+      item.querySelector('.legend-focus')?.setAttribute('aria-pressed', String(isActive));
+    });
+  }
+
+  function selectLegendColor(code, shouldToggle) {
+    selectedLegendCode = shouldToggle && selectedLegendCode === code ? null : code;
     renderGrid(parseInt(cellSizeInput.value));
-    renderLegend();
-  });
-  
-  legendEl.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    const item = e.target.closest('.legend-item');
-    if (!item || !item.dataset.code) return;
-    e.preventDefault();
-    const code = item.dataset.code;
-    selectedLegendCode = selectedLegendCode === code ? null : code;
-    renderGrid(parseInt(cellSizeInput.value));
-    renderLegend();
+    updateLegendSelectionState();
+  }
+
+  legendEl.addEventListener('click', (event) => {
+    const focusButton = event.target.closest('.legend-focus');
+    if (focusButton?.dataset.code) {
+      selectLegendColor(focusButton.dataset.code, true);
+      return;
+    }
+
+    const picker = event.target.closest('.legend-color-picker');
+    if (picker?.dataset.code) {
+      selectLegendColor(picker.dataset.code, false);
+    }
   });
   
   function persistCompletedCells() {
@@ -1774,6 +1782,68 @@ document.addEventListener('DOMContentLoaded', () => {
     projects[idx] = { ...projects[idx], ...updates };
     saveProjects(projects);
   }
+
+  function applyPaletteColor(code, nextHex, options = {}) {
+    if (!currentResult?.colorMap?.[code]) return;
+    const normalizedHex = nextHex.toUpperCase();
+    currentResult.colorMap[code] = normalizedHex;
+
+    gridEl.querySelectorAll(`.cell[data-code="${code}"]`).forEach((cell) => {
+      const index = parseInt(cell.dataset.index, 10);
+      const cols = currentResult.grid[0].length;
+      updateCellElement(cell, code, Math.floor(index / cols), index % cols);
+    });
+
+    const legendItem = legendEl.querySelector(`.legend-item[data-code="${code}"]`);
+    const hexLabel = legendItem?.querySelector('.hex');
+    const focusButton = legendItem?.querySelector('.legend-focus');
+    const picker = legendItem?.querySelector('.legend-color-picker');
+    if (hexLabel) hexLabel.textContent = normalizedHex;
+    if (focusButton) {
+      focusButton.setAttribute('aria-label', `Focus color ${code}, ${normalizedHex}`);
+    }
+    if (picker) {
+      picker.setAttribute('aria-label', `Change color ${code}, currently ${normalizedHex}`);
+    }
+
+    updatePaintControls?.();
+    if (options.persist) {
+      persistProjectUpdate({ colorMap: currentResult.colorMap });
+    }
+  }
+
+  legendEl.addEventListener('focusin', (event) => {
+    const picker = event.target.closest('.legend-color-picker');
+    if (!picker?.dataset.code) return;
+    picker.dataset.previousColor = currentResult.colorMap[picker.dataset.code];
+  });
+
+  legendEl.addEventListener('pointerdown', (event) => {
+    const picker = event.target.closest('.legend-color-picker');
+    if (!picker?.dataset.code) return;
+    picker.dataset.previousColor = currentResult.colorMap[picker.dataset.code];
+  });
+
+  legendEl.addEventListener('input', (event) => {
+    const picker = event.target.closest('.legend-color-picker');
+    if (!picker?.dataset.code) return;
+    applyPaletteColor(picker.dataset.code, picker.value);
+  });
+
+  legendEl.addEventListener('change', (event) => {
+    const picker = event.target.closest('.legend-color-picker');
+    if (!picker?.dataset.code) return;
+    const code = picker.dataset.code;
+    const previousHex = picker.dataset.previousColor || currentResult.colorMap[code];
+    const nextHex = picker.value.toUpperCase();
+    applyPaletteColor(code, nextHex, { persist: true });
+    picker.dataset.previousColor = nextHex;
+
+    if (previousHex !== nextHex) {
+      pushAction({ type: 'palette', code, previousHex, nextHex });
+      trackProductEvent('palette_color_changed', { source: 'legend' });
+    }
+  });
 
   function pushAction(action) {
     actionHistory.push(action);
@@ -1834,6 +1904,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (action.type === 'color') {
       updateColorCounts(action.nextCode, action.prevCode);
       applyColorChange(action.rowIdx, action.colIdx, action.prevCode);
+      return;
+    }
+
+    if (action.type === 'palette') {
+      applyPaletteColor(action.code, action.previousHex, { persist: true });
+      renderLegend();
     }
   }
 
