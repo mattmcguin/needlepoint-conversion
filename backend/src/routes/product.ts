@@ -5,6 +5,7 @@ import type {
   AnalyticsEventRecord,
   ProductDatabase
 } from '../db/client.js';
+import type { ProductNotifier } from '../notifications/telegram.js';
 
 const identifier = z.string().regex(/^[A-Za-z0-9_-]{1,64}$/);
 const projectId = identifier.optional();
@@ -176,7 +177,18 @@ function hasValidReportToken(header: string | undefined, expected: string): bool
 
 interface ProductRouteOptions {
   database: ProductDatabase;
+  notifier?: ProductNotifier;
   reportToken?: string;
+}
+
+function notifyInBackground(
+  notification: Promise<void>,
+  logger: { warn(bindings: object, message: string): void },
+  notificationType: 'feedback' | 'intent'
+): void {
+  void notification.catch((error: unknown) => {
+    logger.warn({ error, notificationType }, 'Telegram notification failed');
+  });
 }
 
 export const productRoutes: FastifyPluginAsync<ProductRouteOptions> = async (
@@ -232,6 +244,16 @@ export const productRoutes: FastifyPluginAsync<ProductRouteOptions> = async (
 
       const { website: _website, ...intent } = parsed.data;
       await options.database.insertIntent(intent);
+      if (
+        options.notifier &&
+        (intent.selectedOption === 'other' || Boolean(intent.optionalComment))
+      ) {
+        notifyInBackground(
+          options.notifier.notifyIntent(intent),
+          app.log,
+          'intent'
+        );
+      }
       return reply.code(202).send({ status: 'accepted' });
     }
   );
@@ -246,6 +268,13 @@ export const productRoutes: FastifyPluginAsync<ProductRouteOptions> = async (
 
       const { website: _website, ...feedback } = parsed.data;
       await options.database.insertFeedback(feedback);
+      if (options.notifier) {
+        notifyInBackground(
+          options.notifier.notifyFeedback(feedback),
+          app.log,
+          'feedback'
+        );
+      }
       return reply.code(202).send({ status: 'accepted' });
     }
   );

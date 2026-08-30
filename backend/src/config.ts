@@ -8,6 +8,8 @@ const environmentSchema = z.object({
   APP_ORIGINS: z.string().min(1),
   DATA_RETENTION_DAYS: z.coerce.number().int().positive().default(365),
   REPORT_TOKEN: z.string().min(32).optional(),
+  TELEGRAM_BOT_TOKEN: z.string().min(20).optional(),
+  TELEGRAM_CHAT_ID: z.string().regex(/^-?\d+$/).optional(),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info')
@@ -21,6 +23,8 @@ export interface AppConfig {
   appOrigins: string[];
   dataRetentionDays: number;
   reportToken?: string;
+  telegramBotToken?: string;
+  telegramChatId?: string;
   logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
 }
 
@@ -56,6 +60,12 @@ export function loadConfig(
 
   if (parsed.data.REPORT_TOKEN) {
     config.reportToken = parsed.data.REPORT_TOKEN;
+  }
+  if (parsed.data.TELEGRAM_BOT_TOKEN) {
+    config.telegramBotToken = parsed.data.TELEGRAM_BOT_TOKEN;
+  }
+  if (parsed.data.TELEGRAM_CHAT_ID) {
+    config.telegramChatId = parsed.data.TELEGRAM_CHAT_ID;
   }
 
   return config;

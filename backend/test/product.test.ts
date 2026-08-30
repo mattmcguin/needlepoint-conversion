@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
 import type { AppConfig } from '../src/config.js';
 import type { ProductDatabase } from '../src/db/client.js';
+import type { ProductNotifier } from '../src/notifications/telegram.js';
 
 const config: AppConfig = {
   nodeEnv: 'test',
@@ -31,6 +32,13 @@ function createDatabase(): ProductDatabase {
       ]
     })),
     deleteProductDataBefore: vi.fn(async () => 0)
+  };
+}
+
+function createNotifier(): ProductNotifier {
+  return {
+    notifyFeedback: vi.fn(async () => undefined),
+    notifyIntent: vi.fn(async () => undefined)
   };
 }
 
@@ -139,7 +147,8 @@ describe('product measurement routes', () => {
 
   it('stores feedback consent independently from the message', async () => {
     const database = createDatabase();
-    const app = buildApp({ config, database, logger: false });
+    const notifier = createNotifier();
+    const app = buildApp({ config, database, notifier, logger: false });
     apps.push(app);
 
     const response = await app.inject({
@@ -163,6 +172,48 @@ describe('product measurement routes', () => {
         email: 'maker@example.com',
         followUpConsent: false
       })
+    );
+    expect(notifier.notifyFeedback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'This made my first canvas much easier.',
+        email: 'maker@example.com'
+      })
+    );
+  });
+
+  it('notifies only for custom or commented feature intent', async () => {
+    const database = createDatabase();
+    const notifier = createNotifier();
+    const app = buildApp({ config, database, notifier, logger: false });
+    apps.push(app);
+
+    const standardResponse = await app.inject({
+      method: 'POST',
+      url: '/v1/intent',
+      payload: {
+        anonymousId: randomUUID(),
+        promptKey: 'post_conversion_features',
+        selectedOption: 'printable_pdf',
+        website: ''
+      }
+    });
+    const customResponse = await app.inject({
+      method: 'POST',
+      url: '/v1/intent',
+      payload: {
+        anonymousId: randomUUID(),
+        promptKey: 'post_conversion_features',
+        selectedOption: 'other',
+        optionalComment: 'A custom thread palette',
+        website: ''
+      }
+    });
+
+    expect(standardResponse.statusCode).toBe(202);
+    expect(customResponse.statusCode).toBe(202);
+    expect(notifier.notifyIntent).toHaveBeenCalledOnce();
+    expect(notifier.notifyIntent).toHaveBeenCalledWith(
+      expect.objectContaining({ optionalComment: 'A custom thread palette' })
     );
   });
 

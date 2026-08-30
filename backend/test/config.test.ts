@@ -9,11 +9,15 @@ describe('loadConfig', () => {
       DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/needlepoint',
       APP_ORIGINS: 'https://needlepointmaker.com, http://localhost:8000',
       DATA_RETENTION_DAYS: '90',
+      TELEGRAM_BOT_TOKEN: 'test-token-with-enough-characters',
+      TELEGRAM_CHAT_ID: '123456789',
       LOG_LEVEL: 'silent'
     });
 
     expect(config.port).toBe(4321);
     expect(config.dataRetentionDays).toBe(90);
+    expect(config.telegramBotToken).toBe('test-token-with-enough-characters');
+    expect(config.telegramChatId).toBe('123456789');
     expect(config.appOrigins).toEqual([
       'https://needlepointmaker.com',
       'http://localhost:8000'

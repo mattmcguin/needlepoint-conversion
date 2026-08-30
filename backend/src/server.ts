@@ -2,10 +2,18 @@ import 'dotenv/config';
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { createDatabase } from './db/client.js';
+import { createTelegramNotifier } from './notifications/telegram.js';
 
 const config = loadConfig();
 const database = createDatabase(config.databaseUrl);
-const app = buildApp({ config, database });
+const notifier =
+  config.telegramBotToken && config.telegramChatId
+    ? createTelegramNotifier({
+        botToken: config.telegramBotToken,
+        chatId: config.telegramChatId
+      })
+    : undefined;
+const app = buildApp({ config, database, ...(notifier ? { notifier } : {}) });
 const RETENTION_CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 async function cleanupExpiredProductData(): Promise<void> {
@@ -46,6 +54,11 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
 
 try {
   await app.listen({ port: config.port, host: config.host });
+  if (config.telegramBotToken && !config.telegramChatId) {
+    app.log.warn('Telegram notifications are waiting for TELEGRAM_CHAT_ID');
+  } else if (notifier) {
+    app.log.info('Telegram notifications enabled');
+  }
   void cleanupExpiredProductData();
 } catch (error) {
   app.log.fatal({ error }, 'Unable to start backend');

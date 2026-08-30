@@ -4,12 +4,14 @@ import rateLimit from '@fastify/rate-limit';
 import Fastify, { type FastifyBaseLogger } from 'fastify';
 import type { AppConfig } from './config.js';
 import type { ProductDatabase } from './db/client.js';
+import type { ProductNotifier } from './notifications/telegram.js';
 import { healthRoutes } from './routes/health.js';
 import { productRoutes } from './routes/product.js';
 
 interface BuildAppOptions {
   config: AppConfig;
   database: ProductDatabase;
+  notifier?: ProductNotifier;
   logger?: boolean | FastifyBaseLogger;
 }
 
@@ -45,6 +47,7 @@ export function buildApp(options: BuildAppOptions) {
   void app.register(healthRoutes, { database: options.database });
   void app.register(productRoutes, {
     database: options.database,
+    ...(options.notifier ? { notifier: options.notifier } : {}),
     ...(options.config.reportToken ? { reportToken: options.config.reportToken } : {})
   });
 
