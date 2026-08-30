@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Option C — Project Journal</title>
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="variants.css">
+</head>
+<body class="prototype option-c">
+  <nav class="prototype-switcher" aria-label="Prototype controls">
+    <a href="index.html">← Options</a>
+    <button class="active" data-view-target="create">Create</button>
+    <button data-view-target="pattern">Pattern</button>
+  </nav>
+
+  <section class="prototype-view active" data-view="create">
+    <div class="c-page">
+      <header class="c-nav">
+        <a class="c-brand" href="#"><img src="../images/logo.png" width="42" height="42" alt=""><span><strong>Needlepoint</strong><small>Maker</small></span></a>
+        <nav aria-label="Main navigation"><button class="active">My projects</button><button>Learn</button><button>About</button></nav>
+        <button class="c-support">♡ Support the maker</button>
+      </header>
+
+      <main class="c-home">
+        <section class="c-welcome">
+          <div class="c-welcome-copy">
+            <p class="c-kicker">YOUR CREATIVE WORKSPACE</p>
+            <h1>Make something<br><em>worth keeping.</em></h1>
+            <p>Turn a favorite photograph into a stitchable canvas, then keep the story of your progress in one beautiful place.</p>
+            <button class="c-start">Start from a photo <span>→</span></button>
+            <small>Free · Private · No account needed</small>
+          </div>
+          <button class="c-photo-card" aria-label="Choose a photo">
+            <span class="c-photo-frame"><img src="../images/needlepoint-bear.jpg" alt="Needlepoint bear sample"><i>＋</i></span>
+            <span><strong>Choose a photograph</strong><small>We’ll guide you from photo to canvas</small></span>
+          </button>
+        </section>
+
+        <section class="c-project-section">
+          <div class="c-section-head"><div><p class="c-kicker">ON YOUR CANVAS</p><h2>Your projects</h2></div><button>View all 3 →</button></div>
+          <div class="c-project-grid">
+            <article class="c-project-card c-featured">
+              <div class="c-project-image"><img src="../images/needlepoint-bear.jpg" alt="Bear ornament project"><span>In progress</span></div>
+              <div class="c-project-copy"><p>BEAR ORNAMENT</p><h3>A small bear for Christmas</h3><div class="c-progress-line"><i></i></div><footer><span><strong>62%</strong> stitched</span><small>Last worked on today</small></footer></div>
+            </article>
+            <article class="c-project-card c-letter-card"><div class="c-letter-art">M</div><div class="c-project-copy"><p>MONOGRAM</p><h3>For Margot</h3><div class="c-progress-line"><i style="width:3%"></i></div><footer><span><strong>3%</strong> stitched</span><small>Started Aug 26</small></footer></div></article>
+            <button class="c-new-card"><span>＋</span><strong>Begin a new project</strong><small>Photo to pattern in a few minutes</small></button>
+          </div>
+        </section>
+
+        <section class="c-notes-strip">
+          <div><p class="c-kicker">THIS WEEK</p><strong>Four quiet stitching sessions</strong><small>412 stitches completed</small></div>
+          <blockquote>“A little progress still makes a keepsake.”</blockquote>
+          <div class="c-week"><span>M<i></i></span><span>T<i class="done"></i></span><span>W<i class="done"></i></span><span>T<i></i></span><span>F<i class="done"></i></span><span>S<i class="done"></i></span><span>S<i></i></span></div>
+        </section>
+      </main>
+    </div>
+  </section>
+
+  <section class="prototype-view" data-view="pattern">
+    <div class="c-page c-pattern-page">
+      <header class="c-nav">
+        <a class="c-brand" href="#"><img src="../images/logo.png" width="42" height="42" alt=""><span><strong>Needlepoint</strong><small>Maker</small></span></a>
+        <nav aria-label="Main navigation"><button class="active">My projects</button><button>Learn</button><button>About</button></nav>
+        <button class="c-support">♡ Support the maker</button>
+      </header>
+      <main class="c-pattern-main">
+        <header class="c-project-masthead">
+          <button class="c-back">← All projects</button>
+          <div><p class="c-kicker">IN PROGRESS</p><h1>A small bear for Christmas</h1><p>Bear ornament · 18 mesh · 4 × 4 inches</p></div>
+          <div class="c-project-actions"><span>Saved on this device</span><button class="secondary-button">Edit pattern</button><button class="c-export">Export pattern</button></div>
+        </header>
+
+        <div class="c-pattern-layout">
+          <section class="c-canvas-wrap">
+            <div class="c-canvas-tools"><div class="segmented"><button class="active">Stitch</button><button>Symbols</button><button>Original</button></div><div><button>−</button><span>88%</span><button>＋</button><button>Fit</button></div></div>
+            <div class="c-canvas-stage"><div class="pattern-art"></div><span class="c-canvas-note">Click a square when you stitch it</span></div>
+            <div class="c-color-ribbon"><div class="color-dots"><i></i><i></i><i></i><i></i><i></i></div><p><strong>30 thread colors</strong><small>Current focus: warm brown · 412 stitches left</small></p><button>See thread list →</button></div>
+          </section>
+
+          <aside class="c-journal">
+            <div class="c-journal-top"><p class="c-kicker">PROJECT JOURNAL</p><h2>Keep the story as you stitch.</h2></div>
+            <section class="c-goal-card"><div class="progress-ring"></div><div><small>OVERALL PROGRESS</small><strong>3,214 stitches to go</strong><span>1,970 of 5,184 complete</span></div></section>
+            <section class="c-today-card"><header><div><p class="c-kicker">TODAY’S GOAL</p><h3>Finish the left ear</h3></div><button>•••</button></header><div class="c-goal-progress"><i></i></div><footer><span>184 of 250 stitches</span><strong>66 to go</strong></footer><button class="c-finish">Finish today’s session</button></section>
+            <section class="c-journal-entry"><header><p class="c-kicker">AUGUST 29</p><span>38 min</span></header><p>Switched to the darker brown around the ear. The outline is finally starting to feel like him.</p><button>＋ Add a note or photo</button></section>
+            <div class="c-next"><span>Up next</span><strong>Continue with warm brown · #9C745C</strong></div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </section>
+  <script src="prototype.js"></script>
+</body>
+</html>

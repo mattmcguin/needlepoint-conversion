@@ -30,7 +30,7 @@
   <meta name="twitter:image" content="https://needlepointmaker.com/images/og-image.jpg">
   
   <!-- Theme Color -->
-  <meta name="theme-color" content="#6c5ce7">
+  <meta name="theme-color" content="#33483b">
   
   <!-- Favicons -->
   <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
@@ -65,9 +65,9 @@
   
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="guided-studio">
   <!-- Mobile Menu Toggle -->
-  <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+  <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open projects">
     <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <line x1="3" y1="6" x2="21" y2="6"></line>
       <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -90,9 +90,9 @@
     </div>
     <button class="new-project-btn" id="newProjectBtn">
       <span class="btn-icon" aria-hidden="true">+</span>
-      <span class="btn-text">New Project</span>
+      <span class="btn-text">New canvas</span>
     </button>
-    <h2>Projects</h2>
+    <h2>Your projects</h2>
     <div class="project-list" id="projectList"></div>
     <div class="sidebar-footer">
       <button class="sidebar-link-btn" id="feedbackBtn" type="button">Send feedback</button>
@@ -109,16 +109,35 @@
   <!-- Main Content -->
   <div class="main-content">
     <div class="container">
-      <h1>Needlepoint Pattern Converter</h1>
-      <p style="text-align:center;color:#888;">Free tool to convert any photo to a needlepoint or cross-stitch pattern</p>
+      <header class="page-hero">
+        <div>
+          <p class="page-kicker">New canvas</p>
+          <h1>Turn a photo into a needlepoint canvas.</h1>
+          <p class="page-intro">Choose a photo and a few canvas details. We’ll make the stitchable pattern.</p>
+        </div>
+        <button class="privacy-pill" id="privacyHeroBtn" type="button">
+          <span aria-hidden="true">⌁</span> Free · Photos stay private
+        </button>
+      </header>
       
       <!-- Upload Section -->
     <div class="upload-section">
-      <h2>Upload Image</h2>
+      <ol class="creation-steps" aria-label="Pattern creation steps">
+        <li class="active"><span>1</span> Photo</li>
+        <li><span>2</span> Canvas</li>
+        <li><span>3</span> Colors</li>
+      </ol>
+
+      <div class="setup-card-heading">
+        <span class="setup-step-number">01</span>
+        <div><h2>Choose your photo</h2><p>Clear subjects and simple backgrounds make the easiest patterns.</p></div>
+      </div>
       
       <div class="file-dropzone" id="fileDropzone">
         <input type="file" id="imageInput" accept="image/*">
-        <span class="dropzone-text">Choose a file or drag it here</span>
+        <span class="dropzone-icon" aria-hidden="true">↥</span>
+        <strong class="dropzone-text">Drop a photo here</strong>
+        <span class="dropzone-help">or choose from your device · JPG, PNG, WebP, or HEIC</span>
         <span class="dropzone-filename" id="dropzoneFilename"></span>
       </div>
       
@@ -132,8 +151,9 @@
         </div>
       </div>
       
+      <div class="setup-options-grid">
       <div class="step-group" id="presetsStep">
-        <label>Project Size</label>
+        <label>Project size</label>
         <div class="size-presets" id="sizePresets">
           <button type="button" class="preset-btn" data-height="72" data-width="72" data-name="Coaster">Coaster (4" × 4")</button>
           <button type="button" class="preset-btn" data-height="72" data-width="54" data-name="Ornament">Ornament (3" × 4")</button>
@@ -175,12 +195,13 @@
       </div>
       
       <div class="step-group" id="colorsStep">
-        <label>Max Colors</label>
+        <label>Maximum colors</label>
         <input type="number" id="colorsInput" value="20" min="2" max="64">
       </div>
       
       <div class="step-group" id="convertStep">
-        <button class="convert-btn" id="convertBtn" disabled>Convert</button>
+        <button class="convert-btn" id="convertBtn" disabled>Create my pattern <span aria-hidden="true">→</span></button>
+      </div>
       </div>
       
       <div class="status" id="status"></div>
@@ -189,43 +210,66 @@
     <!-- Result Section -->
     <div class="result-section" id="resultSection">
       <div class="result-header">
-        <p class="pattern-info" id="patternInfo"></p>
+        <div class="result-title-group">
+          <p class="page-kicker">Your pattern</p>
+          <h1 id="patternTitle">Needlepoint canvas</h1>
+          <p class="pattern-info" id="patternInfo"></p>
+        </div>
         <button id="editProjectBtn" class="edit-settings-btn">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
           </svg>
-          Edit Settings
+          Edit setup
         </button>
       </div>
-    
-    <!-- Controls -->
-    <div class="controls" id="controls">
-      <label>
-        Cell Size: <input type="range" id="cellSize" min="8" max="30" value="12">
-        <span id="cellSizeVal">12px</span>
-      </label>
-      <button id="toggleCodes">Hide Codes</button>
-      <button id="toggleGrid">Toggle Grid Lines</button>
-    </div>
+      <div class="pattern-layout">
+        <aside class="progress-panel" aria-labelledby="progressPanelTitle">
+          <div class="progress-ring" id="progressRing" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progressPercent">0%</span></div>
+          <div><h2 id="progressPanelTitle"><span id="remainingStitches">0</span> stitches left</h2><p id="completedStitches">0 stitches marked</p></div>
+          <div class="progress-track" aria-hidden="true"><i id="progressTrackFill"></i></div>
+          <button type="button" class="continue-stitching-btn" id="continueStitchingBtn">Continue stitching <span aria-hidden="true">→</span></button>
+          <p class="progress-hint">Choose <strong>Track progress</strong>, then mark each square as you stitch it.</p>
+        </aside>
 
-    <div class="mode-bar" id="modeBar" aria-label="Interaction mode">
-      <button type="button" class="mode-btn active" id="progressModeBtn">Progress</button>
-      <button type="button" class="mode-btn" id="paintModeBtn">Paint</button>
-      <button type="button" class="mode-paint-controls" id="paintControls" aria-label="Select paint color">
-        <span class="mode-label">Color</span>
-        <span class="mode-swatch" id="paintSwatch" aria-hidden="true"></span>
-        <span class="mode-color-btn" id="paintColorBtn">
-          <span id="paintColorLabel">1</span>
-        </span>
-      </button>
-    </div>
-      
-      <div class="download-section" id="downloadSection">
-        <button class="download-btn" id="downloadGrid">Download Grid CSV</button>
-        <button class="download-btn" id="downloadLegend">Download Legend CSV</button>
-        <button class="download-btn" id="downloadPng">Download Preview PNG</button>
-        <button class="download-btn" id="downloadGridImage">Download Grid Image</button>
+        <section class="canvas-panel" aria-label="Needlepoint pattern canvas">
+          <!-- Controls -->
+          <div class="controls" id="controls">
+            <div class="mode-bar" id="modeBar" aria-label="Interaction mode">
+              <button type="button" class="mode-btn active" id="progressModeBtn">Track progress</button>
+              <button type="button" class="mode-btn" id="paintModeBtn">Edit colors</button>
+              <button type="button" class="mode-paint-controls" id="paintControls" aria-label="Select paint color">
+                <span class="mode-label">Color</span>
+                <span class="mode-swatch" id="paintSwatch" aria-hidden="true"></span>
+                <span class="mode-color-btn" id="paintColorBtn"><span id="paintColorLabel">1</span></span>
+              </button>
+            </div>
+            <div class="canvas-display-controls">
+              <label><span class="sr-only">Cell size</span><input type="range" id="cellSize" min="8" max="30" value="12"><span id="cellSizeVal">12px</span></label>
+              <button id="toggleCodes">Hide codes</button>
+              <button id="toggleGrid">Grid lines</button>
+            </div>
+          </div>
+
+          <div class="grid-wrapper" id="gridWrapper">
+            <div class="grid" id="grid"></div>
+          </div>
+
+          <div class="download-section" id="downloadSection">
+            <span>Export pattern</span>
+            <button class="download-btn" id="downloadGrid">Grid CSV</button>
+            <button class="download-btn" id="downloadLegend">Legend CSV</button>
+            <button class="download-btn" id="downloadPng">Preview PNG</button>
+            <button class="download-btn download-primary" id="downloadGridImage">Grid image</button>
+          </div>
+        </section>
+
+        <aside class="legend-panel" aria-labelledby="legendTitle">
+          <p class="page-kicker">Thread colors</p>
+          <h2 id="legendTitle">Color legend</h2>
+          <p class="legend-help">Select a color to focus on its stitches.</p>
+          <div class="legend" id="legend"></div>
+        </aside>
       </div>
 
       <section class="research-prompt" id="intentPrompt" aria-labelledby="intentPromptTitle">
@@ -258,13 +302,6 @@
         </div>
         <p class="research-thanks" id="outcomeThanks" role="status"></p>
       </section>
-      
-      <div class="grid-wrapper">
-        <div class="grid" id="grid"></div>
-      </div>
-      
-      <h2>Color Legend</h2>
-      <div class="legend" id="legend"></div>
     </div>
   </div>
   </div>

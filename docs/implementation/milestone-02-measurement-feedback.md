@@ -1,6 +1,6 @@
 # Milestone 02 — Measurement, intent, and feedback
 
-**Status:** In progress
+**Status:** Monitoring in parallel
 **Estimated effort:** 4–7 development days
 
 **Baseline collection started:** August 29, 2026
@@ -61,6 +61,10 @@ Review the first data-quality sample after 24 hours. Begin Milestone 02A after
 either two weeks of representative traffic or 100 completed conversions,
 whichever comes first, unless written feedback identifies an urgent
 accessibility or usability issue sooner.
+
+Implementation of Milestone 02A began with the owner's approval while this
+baseline continues collecting. Measurement remains live and will be used to
+validate and refine the redesign rather than blocking local implementation.
 
 ## Event funnel
 

@@ -366,6 +366,28 @@ function renderGrid(cellSize) {
       gridEl.appendChild(cell);
     });
   });
+  updateProgressSummary();
+}
+
+function updateProgressSummary() {
+  if (!currentResult?.grid?.length) return;
+  const total = currentResult.grid.length * currentResult.grid[0].length;
+  const complete = completedCells.size;
+  const percent = total ? Math.round((complete / total) * 100) : 0;
+  const remaining = Math.max(0, total - complete);
+  const ring = document.getElementById('progressRing');
+  const percentEl = document.getElementById('progressPercent');
+  const remainingEl = document.getElementById('remainingStitches');
+  const completeEl = document.getElementById('completedStitches');
+  const fill = document.getElementById('progressTrackFill');
+  if (ring) {
+    ring.style.setProperty('--progress', `${percent}%`);
+    ring.setAttribute('aria-valuenow', String(percent));
+  }
+  if (percentEl) percentEl.textContent = `${percent}%`;
+  if (remainingEl) remainingEl.textContent = remaining.toLocaleString();
+  if (completeEl) completeEl.textContent = `${complete.toLocaleString()} of ${total.toLocaleString()} stitches marked`;
+  if (fill) fill.style.width = `${percent}%`;
 }
 
 function renderLegend() {
@@ -607,7 +629,14 @@ function renderProjectList() {
     
     const date = document.createElement('div');
     date.className = 'project-date';
-    date.textContent = new Date(project.timestamp).toLocaleDateString();
+    const projectTotal = project.grid?.length && project.grid[0]?.length
+      ? project.grid.length * project.grid[0].length
+      : 0;
+    const projectProgress = projectTotal
+      ? Math.round(((project.completedCells?.length || 0) / projectTotal) * 100)
+      : 0;
+    date.textContent = `${projectProgress}% complete`;
+    date.title = `Saved ${new Date(project.timestamp).toLocaleDateString()}`;
     
     info.appendChild(name);
     info.appendChild(date);
@@ -660,6 +689,7 @@ function loadProject(project) {
   const heightInches = Math.round((height / projectMesh) * 10) / 10;
   document.getElementById('patternInfo').textContent = 
     `${height} rows × ${width} columns (${widthInches}" × ${heightInches}" at ${projectMesh} mesh) • ${currentResult.numColors} colors`;
+  document.getElementById('patternTitle').textContent = project.name || 'Needlepoint canvas';
   
   // Hide upload section, show result sections
   document.querySelector('.upload-section').classList.add('hidden');
@@ -714,6 +744,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const outcomePrompt = document.getElementById('outcomePrompt');
   const feedbackDialog = document.getElementById('feedbackDialog');
   const privacyDialog = document.getElementById('privacyDialog');
+  const privacyHeroBtn = document.getElementById('privacyHeroBtn');
+  const continueStitchingBtn = document.getElementById('continueStitchingBtn');
   
   let loadedImage = null;
   let currentFileName = 'Untitled';
@@ -1139,6 +1171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear content
     document.getElementById('grid').innerHTML = '';
     document.getElementById('legend').innerHTML = '';
+    document.getElementById('patternTitle').textContent = 'Needlepoint canvas';
     
     // Clear active project highlight
     document.querySelectorAll('.project-item').forEach(el => el.classList.remove('active'));
@@ -1374,6 +1407,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const heightInches = stitchesToInches(height);
         document.getElementById('patternInfo').textContent = 
           `${height} rows × ${width} columns (${widthInches}" × ${heightInches}" at ${meshCount} mesh) • ${currentResult.numColors} colors`;
+        document.getElementById('patternTitle').textContent = currentFileName || 'Needlepoint canvas';
         
         // Hide upload section and show result sections
         document.querySelector('.upload-section').classList.add('hidden');
@@ -1675,6 +1709,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     persistCompletedCells();
     recordProgressMilestone();
+    updateProgressSummary();
+    const activeProject = document.querySelector('.project-item.active .project-date');
+    if (activeProject && currentResult?.grid?.length) {
+      const total = currentResult.grid.length * currentResult.grid[0].length;
+      activeProject.textContent = `${Math.round((completedCells.size / total) * 100)}% complete`;
+    }
   }
 
   function applyColorChange(rowIdx, colIdx, nextCode) {
@@ -2155,6 +2195,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof privacyDialog.showModal === 'function') privacyDialog.showModal();
     else privacyDialog.setAttribute('open', '');
   });
+  privacyHeroBtn?.addEventListener('click', () => {
+    document.getElementById('privacyBtn').click();
+  });
+  continueStitchingBtn?.addEventListener('click', () => {
+    document.getElementById('gridWrapper')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
   
   // ============================================
   // MOBILE MENU TOGGLE
@@ -2168,6 +2214,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebar.classList.add('open');
     sidebarOverlay.classList.add('visible');
     mobileMenuToggle.classList.add('active');
+    mobileMenuToggle.setAttribute('aria-label', 'Close projects');
     document.body.style.overflow = 'hidden';
   }
   
@@ -2175,6 +2222,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebar.classList.remove('open');
     sidebarOverlay.classList.remove('visible');
     mobileMenuToggle.classList.remove('active');
+    mobileMenuToggle.setAttribute('aria-label', 'Open projects');
     document.body.style.overflow = '';
   }
   

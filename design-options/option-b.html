@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Option B — Canvas Workspace</title>
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="variants.css">
+</head>
+<body class="prototype option-b">
+  <nav class="prototype-switcher" aria-label="Prototype controls">
+    <a href="index.html">← Options</a>
+    <button class="active" data-view-target="create">Create</button>
+    <button data-view-target="pattern">Pattern</button>
+  </nav>
+
+  <section class="prototype-view active" data-view="create">
+    <div class="b-shell">
+      <aside class="b-rail">
+        <img src="../images/logo.png" width="38" height="38" alt="Needlepoint Maker">
+        <button class="active" aria-label="Projects">▦</button>
+        <button aria-label="New pattern">＋</button>
+        <button aria-label="Learn">?</button>
+        <div></div>
+        <button aria-label="Feedback">◌</button>
+        <button aria-label="Support">♡</button>
+      </aside>
+      <aside class="b-project-panel">
+        <div class="b-panel-head"><strong>Projects</strong><button>＋</button></div>
+        <label class="b-project-search">⌕ <input placeholder="Search projects"></label>
+        <p class="b-label">Recent</p>
+        <button class="b-project-row active"><img src="../images/needlepoint-bear.jpg" alt=""><span><strong>Bear ornament</strong><small>Edited today</small></span><b>62%</b></button>
+        <button class="b-project-row"><span class="b-thumb">M</span><span><strong>Monogram</strong><small>Aug 26</small></span><b>0%</b></button>
+        <button class="b-project-row"><span class="b-thumb b-thumb-blue">H</span><span><strong>Harbor house</strong><small>Aug 19</small></span><b>14%</b></button>
+        <div class="b-storage"><span><i></i></span><p><strong>3 projects saved</strong><small>Stored on this device</small></p></div>
+      </aside>
+      <main class="b-main">
+        <header class="b-topbar">
+          <div class="brand-lockup"><span class="b-logo-dot"></span><strong>Needlepoint Maker</strong><span class="b-beta">BETA</span></div>
+          <div class="b-top-actions"><button>Keyboard shortcuts</button><button>Privacy</button><button class="b-avatar">MM</button></div>
+        </header>
+        <div class="b-create-workspace">
+          <div class="b-create-heading"><span>NEW PATTERN</span><h1>Start with an image</h1><p>Your photo is processed locally and never uploaded.</p></div>
+          <div class="b-work-grid">
+            <section class="b-image-stage">
+              <div class="b-stage-grid"></div>
+              <button class="b-drop-target"><span>＋</span><strong>Choose image</strong><small>or drop it anywhere in this area</small></button>
+              <div class="b-image-tips"><span>For a cleaner pattern</span><p>Use a well-lit photo with one clear subject and a simple background.</p></div>
+            </section>
+            <aside class="b-inspector">
+              <div class="b-inspector-title"><span>Pattern setup</span><b>1 of 3</b></div>
+              <div class="b-field-group">
+                <label>Project type</label>
+                <div class="b-choice-row"><button class="active">Coaster</button><button>Ornament</button><button>Pillow</button></div>
+              </div>
+              <div class="b-field-group">
+                <label>Canvas mesh</label>
+                <div class="b-choice-row b-two"><button>12 mesh</button><button class="active">18 mesh</button></div>
+              </div>
+              <div class="b-field-group">
+                <label>Finished dimensions</label>
+                <div class="b-dimensions"><span><input value="4.0"><small>WIDTH / IN</small></span><b>×</b><span><input value="4.0"><small>HEIGHT / IN</small></span></div>
+                <label class="b-check"><input type="checkbox" checked> Keep photo proportions</label>
+              </div>
+              <div class="b-field-group">
+                <div class="b-field-label"><label>Maximum colors</label><strong>20</strong></div>
+                <input type="range" min="2" max="64" value="20">
+                <div class="b-range-labels"><span>Simple</span><span>Detailed</span></div>
+              </div>
+              <button class="b-generate" disabled>Choose an image to generate</button>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="prototype-view" data-view="pattern">
+    <div class="b-shell b-pattern-shell">
+      <aside class="b-rail">
+        <img src="../images/logo.png" width="38" height="38" alt="Needlepoint Maker">
+        <button class="active" aria-label="Projects">▦</button><button aria-label="New pattern">＋</button><button aria-label="Learn">?</button><div></div><button aria-label="Feedback">◌</button><button aria-label="Support">♡</button>
+      </aside>
+      <aside class="b-tools">
+        <button class="active"><span>↖</span>Select</button>
+        <button><span>✓</span>Stitch</button>
+        <button><span>✎</span>Paint</button>
+        <button><span>⌁</span>Merge</button>
+        <hr>
+        <button><span>⌕</span>Inspect</button>
+      </aside>
+      <main class="b-editor">
+        <header class="b-editor-topbar">
+          <div><span class="b-breadcrumb">Projects /</span><strong>Bear ornament</strong><span class="b-saved">● Saved locally</span></div>
+          <div><button>Undo</button><button>Redo</button><button class="b-export">Export ▾</button></div>
+        </header>
+        <div class="b-editor-body">
+          <section class="b-stage">
+            <div class="b-stage-toolbar">
+              <div class="segmented"><button class="active">Color</button><button>Symbols</button></div>
+              <button>Grid</button><button>Codes</button>
+              <div class="b-stage-spacer"></div><button>−</button><span>84%</span><button>＋</button><button>Fit</button>
+            </div>
+            <div class="b-editor-canvas"><div class="pattern-art"></div></div>
+            <div class="b-statusbar"><span>72 × 72 stitches</span><span>4 × 4 in at 18 mesh</span><span>30 colors</span><strong>3,214 remaining</strong></div>
+          </section>
+          <aside class="b-right-panel">
+            <div class="b-panel-tabs"><button class="active">Progress</button><button>Colors</button><button>Setup</button></div>
+            <section class="b-progress-summary"><div class="progress-ring"></div><div><span>Project progress</span><strong>62% complete</strong><small>1,970 of 5,184 stitches</small></div></section>
+            <section class="b-session-card"><div><span>Current session</span><strong>184 stitches</strong></div><button>Finish session</button></section>
+            <div class="b-right-heading"><strong>Colors in view</strong><button>Filter ▾</button></div>
+            <div class="b-color-rows">
+              <button><i style="--swatch:#4a352b"></i><span><strong>01</strong><small>#4A352B</small></span><progress value="72" max="100"></progress><b>412</b></button>
+              <button><i style="--swatch:#9c745c"></i><span><strong>02</strong><small>#9C745C</small></span><progress value="54" max="100"></progress><b>386</b></button>
+              <button><i style="--swatch:#c2b39a"></i><span><strong>03</strong><small>#C2B39A</small></span><progress value="40" max="100"></progress><b>301</b></button>
+              <button><i style="--swatch:#47636a"></i><span><strong>04</strong><small>#47636A</small></span><progress value="68" max="100"></progress><b>277</b></button>
+              <button><i style="--swatch:#e1d6bd"></i><span><strong>05</strong><small>#E1D6BD</small></span><progress value="81" max="100"></progress><b>242</b></button>
+            </div>
+            <button class="b-view-all">View all 30 colors</button>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </section>
+  <script src="prototype.js"></script>
+</body>
+</html>

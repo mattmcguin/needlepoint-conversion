@@ -1,6 +1,6 @@
 # Milestone 01 — Backend foundation
 
-**Status:** In progress
+**Status:** Complete
 **Estimated effort:** 2–3 development days plus Railway account setup
 
 ## Objective
@@ -19,16 +19,16 @@ Stripe webhooks.
 - [x] Graceful shutdown and structured request logging
 - [x] Automated health and configuration tests
 - [x] Railway project with API and PostgreSQL services
-- [ ] Staging and production Railway environments
+- [x] Production Railway environment; staging intentionally omitted at current scale
 - [x] Railway service connected to GitHub with root directory `/backend`
 - [x] GitHub watch path, detected Node build, package start, and `/health` configured
-- [ ] Move migration execution from start to Railway pre-deploy
+- [x] Move migration execution from start to Railway pre-deploy
 - [x] Generated Railway domain (`needlepoint-api-production.up.railway.app`)
 - [x] Non-secret Railway variables and private PostgreSQL reference added
 - [x] Add `api.needlepointmaker.com`
-- [ ] Automated PostgreSQL backups enabled
+- [x] Daily automated PostgreSQL backups enabled
 - [x] Production liveness and database-readiness smoke tests
-- [ ] Staging smoke test against the public Railway endpoint
+- [x] Production-only deployment strategy documented; no staging smoke test required
 
 ## Acceptance criteria
 
@@ -40,6 +40,15 @@ Stripe webhooks.
 - Database migrations are idempotent and run before a new deployment goes live.
 - No uploaded image, filename, or grid data is accepted or stored.
 
+## Environment decision
+
+Needlepoint Maker will use a single production Railway environment for now.
+The small team and low deployment frequency do not justify the cost and
+operational overhead of duplicated preview or staging services. Every release
+must continue to pass local checks before `main` is pushed, followed by a
+production health smoke test. A staging environment can be reconsidered if the
+backend begins handling paid entitlements or higher-risk data migrations.
+
 ## Railway handoff
 
 See [railway-setup.md](railway-setup.md) after the local verification tasks are
@@ -47,7 +56,6 @@ complete. Railway's newer Infrastructure as Code can be adopted after the first
 service is proven; deprecated `railway.toml` configuration is intentionally not
 introduced for this new service.
 
-The first deployment was uploaded directly from `/backend`. The production
-start command also applies migrations as a safety measure. Once the GitHub
-source is connected, configure Railway's pre-deploy command and then migration
-can be removed from the start path if desired.
+The first deployment was uploaded directly from `/backend`. After the GitHub
+source was connected, migrations moved to Railway's `npm run db:migrate`
+pre-deploy command and the runtime start command became `npm run start`.

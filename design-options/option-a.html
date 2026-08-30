@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Option A — Guided Studio</title>
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="variants.css">
+</head>
+<body class="prototype option-a">
+  <nav class="prototype-switcher" aria-label="Prototype controls">
+    <a href="index.html">← Options</a>
+    <button class="active" data-view-target="create">Create</button>
+    <button data-view-target="pattern">Pattern</button>
+  </nav>
+
+  <section class="prototype-view active" data-view="create">
+    <div class="a-shell">
+      <aside class="a-sidebar">
+        <div class="brand-lockup"><img src="../images/logo.png" width="42" height="42" alt=""><strong>Needlepoint<br>Maker</strong></div>
+        <button class="a-new-button">＋ New canvas</button>
+        <p class="a-section-label">Your projects</p>
+        <button class="a-project active"><img src="../images/needlepoint-bear.jpg" alt=""><span><strong>Bear ornament</strong><small>62% complete</small></span></button>
+        <button class="a-project"><span class="a-empty-thumb">MM</span><span><strong>Monogram</strong><small>Not started</small></span></button>
+        <div class="a-sidebar-foot"><button>Send feedback</button><button>♡ Support the maker</button></div>
+      </aside>
+
+      <main class="a-main">
+        <header class="a-header"><span class="pill">Free · Photos stay private</span><button class="a-mobile-projects">Projects</button></header>
+        <div class="a-content">
+          <p class="a-kicker">New canvas</p>
+          <h1>Turn a favorite photo into something you can stitch.</h1>
+          <p class="a-lede">Choose a photo, tell us about your canvas, and we’ll build a color-coded pattern. Nothing leaves your browser.</p>
+
+          <ol class="a-stepper" aria-label="Creation steps">
+            <li class="active"><span>1</span><strong>Photo</strong></li>
+            <li><span>2</span><strong>Canvas</strong></li>
+            <li><span>3</span><strong>Colors</strong></li>
+          </ol>
+
+          <section class="a-setup-card">
+            <div class="a-card-heading"><span class="a-step-number">01</span><div><h2>Choose your photo</h2><p>Clear subjects and simple backgrounds make the easiest patterns.</p></div></div>
+            <button class="a-dropzone">
+              <span class="a-upload-icon">↥</span>
+              <strong>Drop a photo here</strong>
+              <small>or choose from your device · JPG, PNG, or HEIC</small>
+            </button>
+          </section>
+
+          <section class="a-setup-card a-settings-preview">
+            <div class="a-card-heading"><span class="a-step-number">02</span><div><h2>Pick a finished size</h2><p>You can fine-tune this after choosing a photo.</p></div></div>
+            <div class="a-choice-grid">
+              <button class="active"><span>Coaster</span><small>4 × 4 in</small></button>
+              <button><span>Ornament</span><small>3 × 4 in</small></button>
+              <button><span>Pillow</span><small>8 × 8 in</small></button>
+              <button><span>Custom</span><small>Choose size</small></button>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="prototype-view" data-view="pattern">
+    <div class="a-shell a-pattern-shell">
+      <aside class="a-sidebar">
+        <div class="brand-lockup"><img src="../images/logo.png" width="42" height="42" alt=""><strong>Needlepoint<br>Maker</strong></div>
+        <button class="a-new-button">＋ New canvas</button>
+        <p class="a-section-label">Your projects</p>
+        <button class="a-project active"><img src="../images/needlepoint-bear.jpg" alt=""><span><strong>Bear ornament</strong><small>62% complete</small></span></button>
+        <button class="a-project"><span class="a-empty-thumb">MM</span><span><strong>Monogram</strong><small>Not started</small></span></button>
+        <div class="a-sidebar-foot"><button>Send feedback</button><button>♡ Support the maker</button></div>
+      </aside>
+      <main class="a-main">
+        <header class="a-pattern-head">
+          <div><button class="a-back">← Projects</button><h1>Bear ornament</h1><p>72 × 72 stitches · 18 mesh · 30 colors</p></div>
+          <div class="a-head-actions"><button class="secondary-button">Edit setup</button><button class="primary-button">Export pattern</button></div>
+        </header>
+        <div class="a-pattern-layout">
+          <aside class="a-progress-card">
+            <div class="progress-ring"></div>
+            <div><strong>3,214 stitches left</strong><span>About 8 stitching sessions</span></div>
+            <div class="a-progress-bar"><i></i></div>
+            <button class="a-continue">Continue stitching →</button>
+            <hr>
+            <p class="a-section-label">Today</p>
+            <div class="a-today"><strong>184</strong><span>stitches marked</span></div>
+            <button class="ghost-button">View project details</button>
+          </aside>
+          <section class="a-canvas-card">
+            <div class="a-canvas-toolbar">
+              <div class="segmented"><button class="active">Track progress</button><button>Edit colors</button></div>
+              <div class="a-zoom"><button>−</button><span>100%</span><button>＋</button></div>
+              <button class="secondary-button a-codes">Codes on</button>
+            </div>
+            <div class="a-pattern-stage"><div class="pattern-art"></div></div>
+          </section>
+          <aside class="a-legend-card">
+            <div class="a-legend-title"><div><p class="a-section-label">Thread colors</p><h2>30 colors</h2></div><div class="color-dots"><i></i><i></i><i></i></div></div>
+            <label class="a-search">⌕ <input placeholder="Find a color"></label>
+            <div class="a-thread-list">
+              <button><i style="--swatch:#4a352b"></i><span><strong>01 · Espresso</strong><small>412 left</small></span><b>72%</b></button>
+              <button><i style="--swatch:#9c745c"></i><span><strong>02 · Pecan</strong><small>386 left</small></span><b>54%</b></button>
+              <button><i style="--swatch:#c2b39a"></i><span><strong>03 · Oat</strong><small>301 left</small></span><b>40%</b></button>
+              <button><i style="--swatch:#47636a"></i><span><strong>04 · Blue spruce</strong><small>277 left</small></span><b>68%</b></button>
+              <button><i style="--swatch:#e1d6bd"></i><span><strong>05 · Canvas</strong><small>242 left</small></span><b>81%</b></button>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </section>
+  <script src="prototype.js"></script>
+</body>
+</html>
