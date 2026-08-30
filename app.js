@@ -2157,7 +2157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.setItem(promptStateKey('intent_answered', currentProjectId), 'true');
     document.getElementById('intentOptions').style.display = 'none';
     document.getElementById('intentOtherForm').classList.remove('visible');
-    status.textContent = 'Thanks—this will help prioritize the next improvement.';
+    status.textContent = 'Thanks. This will help prioritize the next improvement.';
   }
 
   function showOutcomePrompt() {
@@ -2252,7 +2252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     document.getElementById('outcomeOptions').style.display = 'none';
     document.getElementById('outcomeThanks').textContent =
-      response === 'yes' ? 'Great—happy stitching!' : 'Thanks. Tell us what is missing so we can improve it.';
+      response === 'yes' ? 'Great. Happy stitching!' : 'Thanks. Tell us what is missing so we can improve it.';
     if (response === 'not_yet') window.setTimeout(() => openFeedback('export', 'outcome'), 350);
   });
 
@@ -2309,7 +2309,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status.textContent = 'That could not be sent right now. Please try again.';
       return;
     }
-    status.textContent = 'Thank you—your feedback was sent.';
+    status.textContent = 'Thank you. Your feedback was sent.';
     form.reset();
     document.getElementById('feedbackEmail').disabled = true;
     window.setTimeout(() => feedbackDialog.close(), 900);

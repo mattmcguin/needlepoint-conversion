@@ -1,4 +1,4 @@
-/* Option A — Guided Studio */
+/* Option A: Guided Studio */
 .option-a {
   --page: #f7f2e9;
   --surface: #fffdf8;
@@ -112,7 +112,7 @@
   .a-thread-list { grid-template-columns: 1fr; }
 }
 
-/* Option B — Canvas Workspace */
+/* Option B: Canvas Workspace */
 .option-b {
   --page: #11141e;
   --surface: #202432;
@@ -199,7 +199,7 @@
   .b-right-panel { border-top: 1px solid var(--line); border-left: 0; }.b-color-rows button:nth-child(n+4) { display: none; }
 }
 
-/* Option C — Project Journal */
+/* Option C: Project Journal */
 .option-c {
   --page: #f4eee3;
   --surface: #fffaf1;
