@@ -1082,56 +1082,91 @@ h2 {
   color: #fff;
 }
 
+.research-dock {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 250px;
+  z-index: 1400;
+  display: none;
+  padding: 14px 22px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: #d7e6db;
+  border-top: 1px solid #b4cbb8;
+}
+.sidebar.collapsed ~ .research-dock {
+  left: 64px;
+}
+.research-dock.visible {
+  display: block;
+}
+body.research-dock-open .main-content {
+  padding-bottom: 140px;
+}
 .research-prompt {
   display: none;
-  position: relative;
-  margin: 0 auto 24px;
-  max-width: 760px;
-  padding: 20px 48px 20px 20px;
-  background: #24243e;
-  border: 1px solid #3f4166;
-  border-radius: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
   text-align: left;
 }
 .research-prompt.visible {
-  display: block;
+  display: flex;
+}
+.research-prompt-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-width: 0;
+  flex: 1;
+}
+.research-prompt-kicker {
+  flex-basis: 100%;
+  margin: 0;
+  color: #9aa3c7;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .research-prompt h2 {
-  margin: 0 0 6px;
+  margin: 0;
   color: #fff;
-  font-size: 18px;
+  font-size: 15px;
+  font-weight: 600;
 }
 .research-prompt p {
-  margin: 0 0 14px;
+  margin: 0;
   color: #b8bdd2;
-  font-size: 14px;
+  font-size: 13px;
 }
-.research-prompt-close {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  width: 32px;
-  height: 32px;
-  padding: 0;
+.research-prompt-dismiss {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 6px 2px;
   background: transparent;
   border: 0;
-  color: #b8bdd2;
+  color: #9aa3c7;
   cursor: pointer;
-  font-size: 24px;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .intent-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 5px;
 }
 .intent-options button,
 .intent-other-form button {
-  padding: 9px 12px;
+  padding: 5px 9px;
   background: #35365a;
   border: 1px solid #565985;
   border-radius: 6px;
   color: #fff;
   cursor: pointer;
+  font-size: 12px;
 }
 .intent-options button:hover,
 .intent-options button:focus-visible,
@@ -1143,7 +1178,8 @@ h2 {
 }
 .intent-other-form {
   display: none;
-  margin-top: 14px;
+  flex-basis: 100%;
+  margin: 0;
 }
 .intent-other-form.visible {
   display: block;
@@ -1163,7 +1199,7 @@ h2 {
   resize: vertical;
 }
 .research-prompt .research-thanks {
-  margin: 12px 0 0;
+  margin: 0;
   color: #b9e6bf;
 }
 
@@ -1535,15 +1571,13 @@ h2 {
     font-size: 15px;
   }
 
-  .research-prompt {
-    padding: 18px 44px 18px 16px;
-  }
-  .intent-options {
-    flex-direction: column;
+  .research-dock,
+  .sidebar.collapsed ~ .research-dock {
+    left: 0;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
   }
   .intent-options button {
-    width: 100%;
-    min-height: 44px;
+    min-height: 32px;
   }
   .feedback-dialog {
     padding: 22px 18px;
@@ -1607,7 +1641,7 @@ body.guided-studio {
 /* Studio navigation */
 .guided-studio .sidebar {
   width: 244px;
-  padding: 26px 18px 20px;
+  padding: 26px 18px 28px;
   background: var(--studio-green);
   border-right: 0;
   color: #f7f1e5;
@@ -2187,24 +2221,45 @@ body.guided-studio:has(.result-section.visible) .home-footer { display: none; }
 .guided-studio .legend-info .count { grid-column: 1 / -1; margin-top: 3px; color: var(--studio-muted); font-size: 8px; }
 
 /* Research and utility surfaces */
+.guided-studio .research-dock {
+  left: 244px;
+  background: #d5e6da;
+  border-top: 1px solid #b3cbb8;
+}
+.guided-studio .sidebar.collapsed ~ .research-dock {
+  left: 72px;
+}
+body.guided-studio.research-dock-open .main-content {
+  padding-bottom: 148px;
+}
 .guided-studio .research-prompt {
-  max-width: 760px;
-  margin: 20px auto 0;
-  background: var(--studio-surface);
-  border: 1px solid var(--studio-line);
-  border-radius: 12px;
   color: var(--studio-ink);
 }
-.guided-studio .research-prompt h2 { color: var(--studio-ink); font-family: Georgia, serif; font-weight: 500; }
-.guided-studio .research-prompt p { color: var(--studio-muted); }
-.guided-studio .research-prompt-close { color: var(--studio-muted); }
+.guided-studio .research-prompt-kicker {
+  color: var(--studio-brown);
+}
+.guided-studio .research-prompt h2 {
+  color: var(--studio-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  font-weight: 500;
+}
+.guided-studio .research-prompt p { color: var(--studio-muted); font-size: 13px; }
+.guided-studio .research-prompt-dismiss {
+  color: var(--studio-muted);
+}
+.guided-studio .research-prompt-dismiss:hover {
+  color: var(--studio-ink);
+}
 .guided-studio .intent-options button,
 .guided-studio .intent-other-form button {
-  min-height: 40px;
+  min-height: 32px;
+  padding: 6px 11px;
   background: #faf7f1;
   border: 1px solid var(--studio-line);
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--studio-ink);
+  font-size: 12px;
 }
 .guided-studio .intent-options button:hover,
 .guided-studio .intent-other-form button:hover { background: var(--studio-tan); outline: 0; }
@@ -2371,7 +2426,12 @@ body.guided-studio:has(.result-section.visible) .home-footer { display: none; }
     padding: 76px 16px 18px;
     background: var(--studio-green);
   }
+  .guided-studio .research-dock,
+  .guided-studio .sidebar.collapsed ~ .research-dock {
+    left: 0;
+  }
   .guided-studio .main-content { width: 100%; padding: 0 14px 90px; }
+  body.guided-studio.research-dock-open .main-content { padding-bottom: 148px; }
   .page-hero { align-items: stretch; flex-direction: column; gap: 18px; padding: 84px 0 28px; }
   .page-hero h1 { font-size: 38px; }
   .page-intro { font-size: 14px; }

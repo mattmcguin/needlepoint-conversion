@@ -78,7 +78,7 @@
   }
   </script>
   
-  <link rel="stylesheet" href="styles.css?v=20260830.3">
+  <link rel="stylesheet" href="styles.css?v=20260830.12">
 </head>
 <body class="guided-studio">
   <!-- Mobile Menu Toggle -->
@@ -259,6 +259,7 @@
           Edit setup
         </button>
       </div>
+
       <div class="pattern-layout">
         <aside class="progress-panel" aria-labelledby="progressPanelTitle">
           <div class="progress-ring" id="progressRing" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progressPercent">0%</span></div>
@@ -308,37 +309,6 @@
           <div class="legend" id="legend"></div>
         </aside>
       </div>
-
-      <section class="research-prompt" id="intentPrompt" aria-labelledby="intentPromptTitle">
-        <button class="research-prompt-close" id="dismissIntentBtn" type="button" aria-label="Dismiss feature question">×</button>
-        <h2 id="intentPromptTitle">What would make this most useful next?</h2>
-        <p>Choose one. Your answer helps decide what gets built after the basics.</p>
-        <div class="intent-options" id="intentOptions">
-          <button type="button" data-intent="printable_pdf">A printable PDF</button>
-          <button type="button" data-intent="thread_matching">Real thread colors</button>
-          <button type="button" data-intent="pattern_cleanup">Cleaner patterns</button>
-          <button type="button" data-intent="cloud_sync">Projects on every device</button>
-          <button type="button" data-intent="physical_canvas">A painted canvas</button>
-          <button type="button" data-intent="other">Something else</button>
-        </div>
-        <form class="intent-other-form" id="intentOtherForm">
-          <label for="intentComment">What do you have in mind?</label>
-          <textarea id="intentComment" maxlength="500" rows="3"></textarea>
-          <button type="submit">Send answer</button>
-        </form>
-        <p class="research-thanks" id="intentThanks" role="status"></p>
-      </section>
-
-      <section class="research-prompt" id="outcomePrompt" aria-labelledby="outcomePromptTitle">
-        <button class="research-prompt-close" id="dismissOutcomeBtn" type="button" aria-label="Dismiss export question">×</button>
-        <h2 id="outcomePromptTitle">Does this feel ready to stitch?</h2>
-        <p>A quick answer helps us understand whether the export did its job.</p>
-        <div class="intent-options" id="outcomeOptions">
-          <button type="button" data-outcome="yes">Yes, I'm ready</button>
-          <button type="button" data-outcome="not_yet">Not quite</button>
-        </div>
-        <p class="research-thanks" id="outcomeThanks" role="status"></p>
-      </section>
     </div>
   </div>
 
@@ -416,7 +386,43 @@
     <p class="privacy-note">Turning this off clears the anonymous identifier from this browser. Feedback is only sent when you choose to submit it.</p>
   </dialog>
 
+  <aside class="research-dock" id="researchDock" hidden>
+    <section class="research-prompt" id="intentPrompt" aria-labelledby="intentPromptTitle">
+      <div class="research-prompt-main">
+        <p class="research-prompt-kicker">Quick question</p>
+        <h2 id="intentPromptTitle">What would make this most useful next?</h2>
+        <div class="intent-options" id="intentOptions">
+          <button type="button" data-intent="printable_pdf">A printable PDF</button>
+          <button type="button" data-intent="thread_matching">Real thread colors</button>
+          <button type="button" data-intent="pattern_cleanup">Cleaner patterns</button>
+          <button type="button" data-intent="cloud_sync">Projects on every device</button>
+          <button type="button" data-intent="physical_canvas">A painted canvas</button>
+          <button type="button" data-intent="other">Something else</button>
+        </div>
+        <form class="intent-other-form" id="intentOtherForm">
+          <label for="intentComment">What do you have in mind?</label>
+          <textarea id="intentComment" maxlength="500" rows="2"></textarea>
+          <button type="submit">Send answer</button>
+        </form>
+        <p class="research-thanks" id="intentThanks" role="status"></p>
+      </div>
+      <button class="research-prompt-dismiss" id="dismissIntentBtn" type="button">Not now</button>
+    </section>
+    <section class="research-prompt" id="outcomePrompt" aria-labelledby="outcomePromptTitle">
+      <div class="research-prompt-main">
+        <p class="research-prompt-kicker">After export</p>
+        <h2 id="outcomePromptTitle">Does this feel ready to stitch?</h2>
+        <div class="intent-options" id="outcomeOptions">
+          <button type="button" data-outcome="yes">Yes, I'm ready</button>
+          <button type="button" data-outcome="not_yet">Not quite</button>
+        </div>
+        <p class="research-thanks" id="outcomeThanks" role="status"></p>
+      </div>
+      <button class="research-prompt-dismiss" id="dismissOutcomeBtn" type="button">Not now</button>
+    </section>
+  </aside>
+
   <script src="analytics.js?v=20260830.3"></script>
-  <script src="app.js?v=20260830.3"></script>
+  <script src="app.js?v=20260830.6"></script>
 </body>
 </html>

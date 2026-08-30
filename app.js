@@ -813,6 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const paintControls = document.getElementById('paintControls');
   const paintColorLabel = document.getElementById('paintColorLabel');
   const paintSwatch = document.getElementById('paintSwatch');
+  const researchDock = document.getElementById('researchDock');
   const intentPrompt = document.getElementById('intentPrompt');
   const outcomePrompt = document.getElementById('outcomePrompt');
   const feedbackDialog = document.getElementById('feedbackDialog');
@@ -1248,8 +1249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('controls').classList.remove('visible');
     document.getElementById('resultSection').classList.remove('visible');
     document.getElementById('downloadSection').classList.remove('visible');
-    intentPrompt.classList.remove('visible');
-    outcomePrompt.classList.remove('visible');
+    hideResearchPrompts();
     
     // Clear content
     document.getElementById('grid').innerHTML = '';
@@ -1497,6 +1497,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('controls').classList.add('visible');
         document.getElementById('resultSection').classList.add('visible');
         document.getElementById('downloadSection').classList.add('visible');
+        scrollWorkspaceToTop();
         
         // Show edit button (new conversions always have original image)
         editProjectBtn.style.display = '';
@@ -2196,16 +2197,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const progressBucketsSeen = new Set();
   let feedbackType = 'general';
 
+  function scrollWorkspaceToTop() {
+    const workspace = document.querySelector('.main-content');
+    if (workspace) workspace.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }
+
   function promptStateKey(prompt, projectId) {
     return `needlepoint_${prompt}_${projectId || 'none'}`;
   }
 
+  function promptStillOpen(prompt, projectId) {
+    return !sessionStorage.getItem(promptStateKey(`${prompt}_answered`, projectId))
+      && !sessionStorage.getItem(promptStateKey(`${prompt}_dismissed`, projectId));
+  }
+
+  function syncResearchDock() {
+    const open = Boolean(
+      intentPrompt?.classList.contains('visible') ||
+      outcomePrompt?.classList.contains('visible')
+    );
+    if (researchDock) {
+      researchDock.hidden = !open;
+      researchDock.classList.toggle('visible', open);
+    }
+    document.body.classList.toggle('research-dock-open', open);
+  }
+
+  function hideResearchPrompts() {
+    intentPrompt?.classList.remove('visible');
+    outcomePrompt?.classList.remove('visible');
+    syncResearchDock();
+  }
+
   function showIntentPrompt(projectId) {
     if (!intentPrompt || !projectId) return;
-    const answered = sessionStorage.getItem(promptStateKey('intent_answered', projectId));
-    const dismissed = sessionStorage.getItem(promptStateKey('intent_dismissed', projectId));
-    if (answered || dismissed) return;
+    if (!promptStillOpen('intent', projectId)) return;
+    if (outcomePrompt?.classList.contains('visible')) return;
+    const alreadyVisible = intentPrompt.classList.contains('visible');
     intentPrompt.classList.add('visible');
+    syncResearchDock();
+    if (alreadyVisible) return;
     trackProductEvent(
       'intent_prompt_viewed',
       { promptKey: 'post_conversion_features' },
@@ -2234,14 +2266,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('intentOptions').style.display = 'none';
     document.getElementById('intentOtherForm').classList.remove('visible');
     status.textContent = 'Thanks. This will help prioritize the next improvement.';
+    window.setTimeout(() => {
+      intentPrompt.classList.remove('visible');
+      syncResearchDock();
+    }, 1600);
   }
 
   function showOutcomePrompt() {
     if (!outcomePrompt || !currentProjectId) return;
-    const answered = sessionStorage.getItem(promptStateKey('outcome_answered', currentProjectId));
-    const dismissed = sessionStorage.getItem(promptStateKey('outcome_dismissed', currentProjectId));
-    if (answered || dismissed || outcomePrompt.classList.contains('visible')) return;
+    if (!promptStillOpen('outcome', currentProjectId)) return;
+    const alreadyVisible = outcomePrompt.classList.contains('visible');
+    intentPrompt.classList.remove('visible');
     outcomePrompt.classList.add('visible');
+    syncResearchDock();
+    if (alreadyVisible) return;
     trackProductEvent(
       'outcome_prompt_viewed',
       { promptKey: 'post_export_ready' },
@@ -2314,6 +2352,7 @@ document.addEventListener('DOMContentLoaded', () => {
       );
     }
     intentPrompt.classList.remove('visible');
+    syncResearchDock();
   });
 
   document.getElementById('outcomeOptions').addEventListener('click', (event) => {
@@ -2330,6 +2369,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('outcomeThanks').textContent =
       response === 'yes' ? 'Great. Happy stitching!' : 'Thanks. Tell us what is missing so we can improve it.';
     if (response === 'not_yet') window.setTimeout(() => openFeedback('export', 'outcome'), 350);
+    window.setTimeout(() => {
+      outcomePrompt.classList.remove('visible');
+      if (currentProjectId && promptStillOpen('intent', currentProjectId)) {
+        showIntentPrompt(currentProjectId);
+      } else {
+        syncResearchDock();
+      }
+    }, response === 'not_yet' ? 200 : 1600);
   });
 
   document.getElementById('dismissOutcomeBtn').addEventListener('click', () => {
@@ -2337,6 +2384,11 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem(promptStateKey('outcome_dismissed', currentProjectId), 'true');
     }
     outcomePrompt.classList.remove('visible');
+    if (currentProjectId && promptStillOpen('intent', currentProjectId)) {
+      showIntentPrompt(currentProjectId);
+    } else {
+      syncResearchDock();
+    }
   });
 
   document.getElementById('feedbackBtn').addEventListener('click', () => {
