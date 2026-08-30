@@ -512,17 +512,42 @@ function downloadCSV(content, filename) {
   URL.revokeObjectURL(url);
 }
 
-function renderGridToCanvas(cellSize) {
+function downloadCanvasPng(canvas, filename) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (!blob) {
+        reject(new Error('Could not create the PNG file.'));
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.hidden = true;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      resolve(blob.size);
+    }, 'image/png');
+  });
+}
+
+function renderGridToCanvas(cellSize, options = {}) {
   if (!currentResult) return null;
   
   const { grid, colorMap } = currentResult;
   const rows = grid.length;
   const cols = grid[0].length;
+  const includeGridLines = options.includeGridLines ?? showGridLines;
+  const includeCodes = options.includeCodes ?? showCodes;
   
   const canvas = document.createElement('canvas');
   canvas.width = cols * cellSize;
   canvas.height = rows * cellSize;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
   
   grid.forEach((row, rowIdx) => {
     row.forEach((code, colIdx) => {
@@ -534,14 +559,14 @@ function renderGridToCanvas(cellSize) {
       ctx.fillRect(x, y, cellSize, cellSize);
       
       // Draw grid lines
-      if (showGridLines) {
+      if (includeGridLines) {
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.lineWidth = 1;
         ctx.strokeRect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
       }
       
       // Draw codes if enabled
-      if (showCodes) {
+      if (includeCodes) {
         const hex = colorMap[code];
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
@@ -1565,20 +1590,26 @@ document.addEventListener('DOMContentLoaded', () => {
     recordExport('legend_csv');
   });
   
-  downloadPngBtn.addEventListener('click', () => {
+  downloadPngBtn.addEventListener('click', async () => {
     const height = currentResult.grid.length;
     const width = currentResult.grid[0].length;
     const colors = currentResult.numColors;
-    const canvas = document.getElementById('processingCanvas');
-    const url = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `needlepoint_preview_${height}x${width}_${colors}colors.png`;
-    a.click();
-    recordExport('preview_png');
+    const longestSide = Math.max(height, width);
+    const previewCellSize = Math.max(2, Math.min(8, Math.floor(2048 / longestSide)));
+    const canvas = renderGridToCanvas(previewCellSize, {
+      includeGridLines: false,
+      includeCodes: false
+    });
+    if (!canvas) return;
+    try {
+      await downloadCanvasPng(canvas, `needlepoint_preview_${height}x${width}_${colors}colors.png`);
+      recordExport('preview_png');
+    } catch (error) {
+      showStatus(error.message, 'error');
+    }
   });
   
-  downloadGridImageBtn.addEventListener('click', () => {
+  downloadGridImageBtn.addEventListener('click', async () => {
     const cellSize = parseInt(cellSizeInput.value);
     const canvas = renderGridToCanvas(cellSize);
     if (!canvas) return;
@@ -1586,12 +1617,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const height = currentResult.grid.length;
     const width = currentResult.grid[0].length;
     const colors = currentResult.numColors;
-    const url = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `needlepoint_grid_${height}x${width}_${colors}colors_${cellSize}px.png`;
-    a.click();
-    recordExport('grid_png');
+    try {
+      await downloadCanvasPng(canvas, `needlepoint_grid_${height}x${width}_${colors}colors_${cellSize}px.png`);
+      recordExport('grid_png');
+    } catch (error) {
+      showStatus(error.message, 'error');
+    }
   });
   
   // Edit project button handler
