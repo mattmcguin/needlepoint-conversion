@@ -10,6 +10,7 @@ describe('Telegram notifications', () => {
     const notifier = createTelegramNotifier({
       botToken: 'test-token-with-enough-characters',
       chatId: '123456789',
+      notifyImageUploads: true,
       fetch
     });
 
@@ -42,6 +43,7 @@ describe('Telegram notifications', () => {
     const notifier = createTelegramNotifier({
       botToken: 'test-token-with-enough-characters',
       chatId: '123456789',
+      notifyImageUploads: true,
       fetch: vi.fn(
         async (..._args: Parameters<typeof globalThis.fetch>) =>
           new Response('', { status: 401 })
@@ -56,5 +58,65 @@ describe('Telegram notifications', () => {
         optionalComment: 'A custom thread palette'
       })
     ).rejects.toThrow('Telegram sendMessage failed with status 401');
+  });
+
+  it('sends anonymous image-selection details when upload alerts are enabled', async () => {
+    const fetch = vi.fn(
+      async (..._args: Parameters<typeof globalThis.fetch>) =>
+        new Response(JSON.stringify({ ok: true }))
+    );
+    const notifier = createTelegramNotifier({
+      botToken: 'test-token-with-enough-characters',
+      chatId: '123456789',
+      notifyImageUploads: true,
+      fetch
+    });
+
+    await notifier.notifyAnalyticsEvent({
+      eventId: 'event-1',
+      anonymousId: 'anonymous-1',
+      sessionId: 'session-1',
+      eventName: 'image_selected',
+      path: '/',
+      properties: {
+        fileType: 'jpeg',
+        megapixelsBucket: '1_to_5'
+      },
+      occurredAt: new Date()
+    });
+
+    const request = fetch.mock.calls[0];
+    const body = JSON.parse(String(request?.[1]?.body)) as { text: string };
+    expect(body.text).toContain('Image selected in Needlepoint Maker');
+    expect(body.text).toContain('Type: JPEG');
+    expect(body.text).toContain('Size: 1 to 5 megapixels');
+  });
+
+  it('skips image-selection alerts when the upload switch is disabled', async () => {
+    const fetch = vi.fn(
+      async (..._args: Parameters<typeof globalThis.fetch>) =>
+        new Response(JSON.stringify({ ok: true }))
+    );
+    const notifier = createTelegramNotifier({
+      botToken: 'test-token-with-enough-characters',
+      chatId: '123456789',
+      notifyImageUploads: false,
+      fetch
+    });
+
+    await notifier.notifyAnalyticsEvent({
+      eventId: 'event-1',
+      anonymousId: 'anonymous-1',
+      sessionId: 'session-1',
+      eventName: 'image_selected',
+      path: '/',
+      properties: {
+        fileType: 'png',
+        megapixelsBucket: 'under_1'
+      },
+      occurredAt: new Date()
+    });
+
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

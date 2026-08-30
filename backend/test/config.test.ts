@@ -11,6 +11,7 @@ describe('loadConfig', () => {
       DATA_RETENTION_DAYS: '90',
       TELEGRAM_BOT_TOKEN: 'test-token-with-enough-characters',
       TELEGRAM_CHAT_ID: '123456789',
+      TELEGRAM_NOTIFY_IMAGE_UPLOADS: 'false',
       LOG_LEVEL: 'silent'
     });
 
@@ -18,6 +19,7 @@ describe('loadConfig', () => {
     expect(config.dataRetentionDays).toBe(90);
     expect(config.telegramBotToken).toBe('test-token-with-enough-characters');
     expect(config.telegramChatId).toBe('123456789');
+    expect(config.telegramNotifyImageUploads).toBe(false);
     expect(config.appOrigins).toEqual([
       'https://needlepointmaker.com',
       'http://localhost:8000'

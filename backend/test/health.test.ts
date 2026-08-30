@@ -10,6 +10,7 @@ const config: AppConfig = {
   databaseUrl: 'postgresql://unused',
   appOrigins: ['https://needlepointmaker.com'],
   dataRetentionDays: 365,
+  telegramNotifyImageUploads: true,
   logLevel: 'silent'
 };
 

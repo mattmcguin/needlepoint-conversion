@@ -10,6 +10,7 @@ const environmentSchema = z.object({
   REPORT_TOKEN: z.string().min(32).optional(),
   TELEGRAM_BOT_TOKEN: z.string().min(20).optional(),
   TELEGRAM_CHAT_ID: z.string().regex(/^-?\d+$/).optional(),
+  TELEGRAM_NOTIFY_IMAGE_UPLOADS: z.enum(['true', 'false']).default('true'),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info')
@@ -25,6 +26,7 @@ export interface AppConfig {
   reportToken?: string;
   telegramBotToken?: string;
   telegramChatId?: string;
+  telegramNotifyImageUploads: boolean;
   logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
 }
 
@@ -55,6 +57,7 @@ export function loadConfig(
     databaseUrl: parsed.data.DATABASE_URL,
     appOrigins,
     dataRetentionDays: parsed.data.DATA_RETENTION_DAYS,
+    telegramNotifyImageUploads: parsed.data.TELEGRAM_NOTIFY_IMAGE_UPLOADS === 'true',
     logLevel: parsed.data.LOG_LEVEL
   };
 

@@ -12,6 +12,7 @@ const config: AppConfig = {
   databaseUrl: 'postgresql://unused',
   appOrigins: ['https://needlepointmaker.com'],
   dataRetentionDays: 365,
+  telegramNotifyImageUploads: true,
   reportToken: 'test-report-token-with-more-than-32-characters',
   logLevel: 'silent'
 };
@@ -38,7 +39,8 @@ function createDatabase(): ProductDatabase {
 function createNotifier(): ProductNotifier {
   return {
     notifyFeedback: vi.fn(async () => undefined),
-    notifyIntent: vi.fn(async () => undefined)
+    notifyIntent: vi.fn(async () => undefined),
+    notifyAnalyticsEvent: vi.fn(async () => undefined)
   };
 }
 
@@ -150,6 +152,54 @@ describe('product measurement routes', () => {
     expect(database.insertAnalyticsEvents).not.toHaveBeenCalled();
   });
 
+  it('notifies for image selections and readiness answers', async () => {
+    const database = createDatabase();
+    const notifier = createNotifier();
+    const app = buildApp({ config, database, notifier, logger: false });
+    apps.push(app);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/events/batch',
+      payload: {
+        anonymousId: randomUUID(),
+        sessionId: randomUUID(),
+        events: [
+          {
+            eventId: randomUUID(),
+            eventName: 'image_selected',
+            path: '/',
+            properties: {
+              fileType: 'jpeg',
+              megapixelsBucket: '1_to_5'
+            },
+            occurredAt: new Date().toISOString()
+          },
+          {
+            eventId: randomUUID(),
+            projectId: '123456789',
+            eventName: 'outcome_prompt_responded',
+            path: '/',
+            properties: {
+              promptKey: 'post_export_ready',
+              response: 'yes'
+            },
+            occurredAt: new Date().toISOString()
+          }
+        ]
+      }
+    });
+
+    expect(response.statusCode).toBe(202);
+    expect(notifier.notifyAnalyticsEvent).toHaveBeenCalledTimes(2);
+    expect(notifier.notifyAnalyticsEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ eventName: 'image_selected' })
+    );
+    expect(notifier.notifyAnalyticsEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ eventName: 'outcome_prompt_responded' })
+    );
+  });
+
   it('accepts text/plain batches sent during page unload', async () => {
     const database = createDatabase();
     const app = buildApp({ config, database, logger: false });
@@ -214,7 +264,7 @@ describe('product measurement routes', () => {
     );
   });
 
-  it('notifies only for custom or commented feature intent', async () => {
+  it('notifies for every submitted feature answer', async () => {
     const database = createDatabase();
     const notifier = createNotifier();
     const app = buildApp({ config, database, notifier, logger: false });
@@ -244,7 +294,10 @@ describe('product measurement routes', () => {
 
     expect(standardResponse.statusCode).toBe(202);
     expect(customResponse.statusCode).toBe(202);
-    expect(notifier.notifyIntent).toHaveBeenCalledOnce();
+    expect(notifier.notifyIntent).toHaveBeenCalledTimes(2);
+    expect(notifier.notifyIntent).toHaveBeenCalledWith(
+      expect.objectContaining({ selectedOption: 'printable_pdf' })
+    );
     expect(notifier.notifyIntent).toHaveBeenCalledWith(
       expect.objectContaining({ optionalComment: 'A custom thread palette' })
     );

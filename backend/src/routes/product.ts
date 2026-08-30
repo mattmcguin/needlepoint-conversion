@@ -185,7 +185,7 @@ interface ProductRouteOptions {
 function notifyInBackground(
   notification: Promise<void>,
   logger: { warn(bindings: object, message: string): void },
-  notificationType: 'feedback' | 'intent'
+  notificationType: 'feedback' | 'intent' | 'product_event'
 ): void {
   void notification.catch((error: unknown) => {
     logger.warn({ error, notificationType }, 'Telegram notification failed');
@@ -231,6 +231,20 @@ export const productRoutes: FastifyPluginAsync<ProductRouteOptions> = async (
       }
 
       await options.database.insertAnalyticsEvents(records);
+      if (options.notifier) {
+        for (const record of records) {
+          if (
+            record.eventName === 'image_selected' ||
+            record.eventName === 'outcome_prompt_responded'
+          ) {
+            notifyInBackground(
+              options.notifier.notifyAnalyticsEvent(record),
+              app.log,
+              'product_event'
+            );
+          }
+        }
+      }
       return reply.code(202).send({ status: 'accepted' });
     }
   );
@@ -245,10 +259,7 @@ export const productRoutes: FastifyPluginAsync<ProductRouteOptions> = async (
 
       const { website: _website, ...intent } = parsed.data;
       await options.database.insertIntent(intent);
-      if (
-        options.notifier &&
-        (intent.selectedOption === 'other' || Boolean(intent.optionalComment))
-      ) {
+      if (options.notifier) {
         notifyInBackground(
           options.notifier.notifyIntent(intent),
           app.log,

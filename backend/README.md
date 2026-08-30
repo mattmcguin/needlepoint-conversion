@@ -50,10 +50,12 @@ Expired product-research data is cleaned at process startup and once daily;
 ## Telegram notifications
 
 Set both `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` to receive private alerts
-for submitted feedback and custom feature requests. If only the bot token is
-present, the API starts normally and logs that it is waiting for the chat ID.
-Telegram delivery is best-effort and never changes the response returned to a
-visitor. Notification messages exclude submitted email addresses.
+for submitted feedback, feature-question answers, readiness answers, and image
+selections. Image-selection messages contain only the allow-listed file type
+and broad megapixel range, never the photo or filename. Set
+`TELEGRAM_NOTIFY_IMAGE_UPLOADS=false` to silence only the potentially noisy
+image alerts. Telegram delivery is best-effort and never changes the response
+returned to a visitor. Notification messages exclude submitted email addresses.
 
 Deployment steps are tracked in
 [`docs/implementation/railway-setup.md`](../docs/implementation/railway-setup.md).
