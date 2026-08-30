@@ -12,7 +12,6 @@ const config: AppConfig = {
   databaseUrl: 'postgresql://unused',
   appOrigins: ['https://needlepointmaker.com'],
   dataRetentionDays: 365,
-  telegramNotifyImageUploads: true,
   reportToken: 'test-report-token-with-more-than-32-characters',
   logLevel: 'silent'
 };
@@ -23,6 +22,12 @@ function createDatabase(): ProductDatabase {
     insertAnalyticsEvents: vi.fn(async () => undefined),
     insertIntent: vi.fn(async () => undefined),
     insertFeedback: vi.fn(async () => undefined),
+    getVisitorActivity: vi.fn(async () => ({
+      conversions: 1,
+      exports: 1,
+      progressMarks: 0,
+      sessions: 1
+    })),
     getProductSummary: vi.fn(async (since) => ({
       since: since.toISOString(),
       events: [{ name: 'conversion_completed', count: 2 }],
@@ -152,17 +157,18 @@ describe('product measurement routes', () => {
     expect(database.insertAnalyticsEvents).not.toHaveBeenCalled();
   });
 
-  it('notifies for image selections and readiness answers', async () => {
+  it('notifies for conversions, exports, stitch tracking, and readiness answers', async () => {
     const database = createDatabase();
     const notifier = createNotifier();
     const app = buildApp({ config, database, notifier, logger: false });
     apps.push(app);
+    const anonymousId = randomUUID();
 
     const response = await app.inject({
       method: 'POST',
       url: '/v1/events/batch',
       payload: {
-        anonymousId: randomUUID(),
+        anonymousId,
         sessionId: randomUUID(),
         events: [
           {
@@ -173,6 +179,36 @@ describe('product measurement routes', () => {
               fileType: 'jpeg',
               megapixelsBucket: '1_to_5'
             },
+            occurredAt: new Date().toISOString()
+          },
+          {
+            eventId: randomUUID(),
+            eventName: 'conversion_completed',
+            path: '/',
+            properties: {
+              mesh: 18,
+              widthStitches: 72,
+              heightStitches: 72,
+              maxColors: 32,
+              unitMode: 'inches',
+              isEdit: false,
+              colorCount: 24,
+              durationBucket: '1_to_3s'
+            },
+            occurredAt: new Date().toISOString()
+          },
+          {
+            eventId: randomUUID(),
+            eventName: 'export_clicked',
+            path: '/',
+            properties: { exportType: 'grid_png' },
+            occurredAt: new Date().toISOString()
+          },
+          {
+            eventId: randomUUID(),
+            eventName: 'progress_marked',
+            path: '/',
+            properties: { completedPercentBucket: '50_to_74' },
             occurredAt: new Date().toISOString()
           },
           {
@@ -191,12 +227,29 @@ describe('product measurement routes', () => {
     });
 
     expect(response.statusCode).toBe(202);
-    expect(notifier.notifyAnalyticsEvent).toHaveBeenCalledTimes(2);
+    await vi.waitFor(() => {
+      expect(database.getVisitorActivity).toHaveBeenCalledWith(anonymousId);
+      expect(notifier.notifyAnalyticsEvent).toHaveBeenCalledTimes(4);
+    });
     expect(notifier.notifyAnalyticsEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ eventName: 'image_selected' })
+      expect.objectContaining({ eventName: 'conversion_completed' }),
+      expect.objectContaining({ conversions: 1 })
     );
     expect(notifier.notifyAnalyticsEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ eventName: 'outcome_prompt_responded' })
+      expect.objectContaining({ eventName: 'export_clicked' }),
+      expect.any(Object)
+    );
+    expect(notifier.notifyAnalyticsEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ eventName: 'progress_marked' }),
+      expect.any(Object)
+    );
+    expect(notifier.notifyAnalyticsEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ eventName: 'outcome_prompt_responded' }),
+      expect.any(Object)
+    );
+    expect(notifier.notifyAnalyticsEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({ eventName: 'image_selected' }),
+      expect.anything()
     );
   });
 
@@ -256,12 +309,15 @@ describe('product measurement routes', () => {
         followUpConsent: false
       })
     );
-    expect(notifier.notifyFeedback).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'This made my first canvas much easier.',
-        email: 'maker@example.com'
-      })
-    );
+    await vi.waitFor(() => {
+      expect(notifier.notifyFeedback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'This made my first canvas much easier.',
+          email: 'maker@example.com'
+        }),
+        expect.objectContaining({ conversions: 1 })
+      );
+    });
   });
 
   it('notifies for every submitted feature answer', async () => {
@@ -294,12 +350,16 @@ describe('product measurement routes', () => {
 
     expect(standardResponse.statusCode).toBe(202);
     expect(customResponse.statusCode).toBe(202);
-    expect(notifier.notifyIntent).toHaveBeenCalledTimes(2);
+    await vi.waitFor(() => {
+      expect(notifier.notifyIntent).toHaveBeenCalledTimes(2);
+    });
     expect(notifier.notifyIntent).toHaveBeenCalledWith(
-      expect.objectContaining({ selectedOption: 'printable_pdf' })
+      expect.objectContaining({ selectedOption: 'printable_pdf' }),
+      expect.any(Object)
     );
     expect(notifier.notifyIntent).toHaveBeenCalledWith(
-      expect.objectContaining({ optionalComment: 'A custom thread palette' })
+      expect.objectContaining({ optionalComment: 'A custom thread palette' }),
+      expect.any(Object)
     );
   });
 

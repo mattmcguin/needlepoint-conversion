@@ -49,10 +49,25 @@ export interface ProductSummary {
   }>;
 }
 
+export interface VisitorActivity {
+  conversions: number;
+  exports: number;
+  progressMarks: number;
+  sessions: number;
+}
+
+export const emptyVisitorActivity: VisitorActivity = {
+  conversions: 0,
+  exports: 0,
+  progressMarks: 0,
+  sessions: 0
+};
+
 export interface ProductDatabase extends HealthDatabase {
   insertAnalyticsEvents(events: AnalyticsEventRecord[]): Promise<void>;
   insertIntent(intent: IntentRecord): Promise<void>;
   insertFeedback(feedback: FeedbackRecord): Promise<void>;
+  getVisitorActivity(anonymousId: string): Promise<VisitorActivity>;
   getProductSummary(since: Date): Promise<ProductSummary>;
   deleteProductDataBefore(cutoff: Date): Promise<number>;
 }
@@ -84,6 +99,30 @@ export function createDatabase(databaseUrl: string) {
     },
     async insertFeedback(feedback: FeedbackRecord): Promise<void> {
       await client.insert(schema.feedback).values(feedback);
+    },
+    async getVisitorActivity(anonymousId: string): Promise<VisitorActivity> {
+      const result = await pool.query<{
+        conversions: string;
+        exports: string;
+        progress_marks: string;
+        sessions: string;
+      }>(
+        `select
+           count(*) filter (where event_name = 'conversion_completed')::text as conversions,
+           count(*) filter (where event_name = 'export_clicked')::text as exports,
+           count(*) filter (where event_name = 'progress_marked')::text as progress_marks,
+           count(distinct session_id)::text as sessions
+         from analytics_events
+         where anonymous_id = $1`,
+        [anonymousId]
+      );
+      const row = result.rows[0];
+      return {
+        conversions: Number(row?.conversions ?? 0),
+        exports: Number(row?.exports ?? 0),
+        progressMarks: Number(row?.progress_marks ?? 0),
+        sessions: Number(row?.sessions ?? 0)
+      };
     },
     async getProductSummary(since: Date): Promise<ProductSummary> {
       const [eventsResult, intentResult, feedbackResult, acquisitionResult] = await Promise.all([

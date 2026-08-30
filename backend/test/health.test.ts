@@ -10,7 +10,6 @@ const config: AppConfig = {
   databaseUrl: 'postgresql://unused',
   appOrigins: ['https://needlepointmaker.com'],
   dataRetentionDays: 365,
-  telegramNotifyImageUploads: true,
   logLevel: 'silent'
 };
 
@@ -22,6 +21,12 @@ function databaseWithCheck(check: ProductDatabase['check']): ProductDatabase {
     insertAnalyticsEvents: vi.fn(async () => undefined),
     insertIntent: vi.fn(async () => undefined),
     insertFeedback: vi.fn(async () => undefined),
+    getVisitorActivity: vi.fn(async () => ({
+      conversions: 0,
+      exports: 0,
+      progressMarks: 0,
+      sessions: 0
+    })),
     getProductSummary: vi.fn(async (since) => ({
       since: since.toISOString(),
       events: [],

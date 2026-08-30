@@ -10,8 +10,7 @@ const notifier =
   config.telegramBotToken && config.telegramChatId
     ? createTelegramNotifier({
         botToken: config.telegramBotToken,
-        chatId: config.telegramChatId,
-        notifyImageUploads: config.telegramNotifyImageUploads
+        chatId: config.telegramChatId
       })
     : undefined;
 const app = buildApp({ config, database, ...(notifier ? { notifier } : {}) });

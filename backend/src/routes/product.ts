@@ -1,11 +1,15 @@
 import { timingSafeEqual } from 'node:crypto';
 import type { FastifyPluginAsync, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import type {
-  AnalyticsEventRecord,
-  ProductDatabase
+import {
+  emptyVisitorActivity,
+  type AnalyticsEventRecord,
+  type ProductDatabase
 } from '../db/client.js';
-import type { ProductNotifier } from '../notifications/telegram.js';
+import {
+  TELEGRAM_SIGNAL_EVENTS,
+  type ProductNotifier
+} from '../notifications/telegram.js';
 
 const identifier = z.string().regex(/^[A-Za-z0-9_-]{1,64}$/);
 const projectId = identifier.optional();
@@ -182,6 +186,8 @@ interface ProductRouteOptions {
   reportToken?: string;
 }
 
+const telegramSignalEvents = new Set<string>(TELEGRAM_SIGNAL_EVENTS);
+
 function notifyInBackground(
   notification: Promise<void>,
   logger: { warn(bindings: object, message: string): void },
@@ -190,6 +196,17 @@ function notifyInBackground(
   void notification.catch((error: unknown) => {
     logger.warn({ error, notificationType }, 'Telegram notification failed');
   });
+}
+
+async function visitorActivityFor(
+  database: ProductDatabase,
+  anonymousId: string
+) {
+  try {
+    return await database.getVisitorActivity(anonymousId);
+  } catch {
+    return emptyVisitorActivity;
+  }
 }
 
 export const productRoutes: FastifyPluginAsync<ProductRouteOptions> = async (
@@ -232,17 +249,17 @@ export const productRoutes: FastifyPluginAsync<ProductRouteOptions> = async (
 
       await options.database.insertAnalyticsEvents(records);
       if (options.notifier) {
-        for (const record of records) {
-          if (
-            record.eventName === 'image_selected' ||
-            record.eventName === 'outcome_prompt_responded'
-          ) {
-            notifyInBackground(
-              options.notifier.notifyAnalyticsEvent(record),
-              app.log,
-              'product_event'
-            );
-          }
+        const signals = records.filter((record) => telegramSignalEvents.has(record.eventName));
+        if (signals.length > 0) {
+          notifyInBackground(
+            visitorActivityFor(options.database, parsed.data.anonymousId).then((activity) =>
+              Promise.all(
+                signals.map((record) => options.notifier!.notifyAnalyticsEvent(record, activity))
+              ).then(() => undefined)
+            ),
+            app.log,
+            'product_event'
+          );
         }
       }
       return reply.code(202).send({ status: 'accepted' });
@@ -261,7 +278,9 @@ export const productRoutes: FastifyPluginAsync<ProductRouteOptions> = async (
       await options.database.insertIntent(intent);
       if (options.notifier) {
         notifyInBackground(
-          options.notifier.notifyIntent(intent),
+          visitorActivityFor(options.database, intent.anonymousId).then((activity) =>
+            options.notifier!.notifyIntent(intent, activity)
+          ),
           app.log,
           'intent'
         );
@@ -282,7 +301,9 @@ export const productRoutes: FastifyPluginAsync<ProductRouteOptions> = async (
       await options.database.insertFeedback(feedback);
       if (options.notifier) {
         notifyInBackground(
-          options.notifier.notifyFeedback(feedback),
+          visitorActivityFor(options.database, feedback.anonymousId).then((activity) =>
+            options.notifier!.notifyFeedback(feedback, activity)
+          ),
           app.log,
           'feedback'
         );
