@@ -15,7 +15,7 @@ My wife enjoys needlepoint as a hobby, but finding patterns for specific images 
 
 - **Image to Pattern Conversion**: Upload any image and convert it to a grid-based needlepoint pattern
 - **Project Size Presets**: Quick selection for common project types (Coaster, Ornament, Pillow, Wall Art) with smart aspect ratio matching—presets that would stretch your image are automatically disabled
-- **Canvas Mesh Options**: Choose between 12 mesh (larger stitches) or 18 mesh (finer detail) canvas
+- **Canvas Mesh Options**: Choose between 13 mesh (larger stitches) or 18 mesh (finer detail) canvas
 - **Flexible Dimensions**: Enter dimensions in inches or stitches, with automatic conversion based on mesh count
 - **Aspect Ratio Lock**: Optionally lock aspect ratio to prevent image distortion
 - **Color Palette Control**: Limit the number of colors using median cut quantization
@@ -56,7 +56,7 @@ xdg-open index.html
    - Pillow (8" × 8")
    - Wall Art (6" × 8")
    - Presets that don't match your image's aspect ratio are automatically disabled
-3. Choose your **Canvas Mesh** (12 or 18 intersections per inch)
+3. Choose your **Canvas Mesh** (13 or 18 intersections per inch)
 4. Adjust **Dimensions** if needed:
    - Toggle between Inches and Stitches units
    - Enable/disable aspect ratio lock
@@ -106,11 +106,11 @@ The application uses the **median cut algorithm** to reduce the image's color pa
 
 Dimensions can be entered in inches or stitches:
 - **18 mesh**: 18 stitches per inch (finer detail, more stitches)
-- **12 mesh**: 12 stitches per inch (larger stitches, faster to complete)
+- **13 mesh**: 13 stitches per inch (larger stitches, faster to complete)
 
 Example: A 4" × 4" project equals:
 - 72 × 72 stitches at 18 mesh
-- 48 × 48 stitches at 12 mesh
+- 52 × 52 stitches at 13 mesh
 
 ### File Structure
 

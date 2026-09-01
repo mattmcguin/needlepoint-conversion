@@ -10,7 +10,7 @@ the code for PDF, thread-catalog, and cleanup features.
 
 ## Deliverables
 
-- [ ] Add 10, 13, and 14 mesh options alongside 12 and 18
+- [ ] Add 10, 12, and 14 mesh options alongside 13 and 18
 - [ ] Centralize mesh and dimension calculations
 - [ ] Show completion percentage and stitches remaining
 - [ ] Show completed and remaining stitches per color
