@@ -52,6 +52,7 @@ export const intentResponses = pgTable(
     promptKey: varchar('prompt_key', { length: 80 }).notNull(),
     selectedOption: varchar('selected_option', { length: 80 }).notNull(),
     optionalComment: text('optional_comment'),
+    email: varchar('email', { length: 320 }),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow()

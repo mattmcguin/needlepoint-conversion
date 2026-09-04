@@ -528,26 +528,34 @@ function downloadCSV(content, filename) {
   URL.revokeObjectURL(url);
 }
 
-function downloadCanvasPng(canvas, filename) {
+function canvasToPngBlob(canvas) {
   return new Promise((resolve, reject) => {
     canvas.toBlob(blob => {
       if (!blob) {
         reject(new Error('Could not create the PNG file.'));
         return;
       }
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.hidden = true;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      resolve(blob.size);
+      resolve(blob);
     }, 'image/png');
   });
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.hidden = true;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function downloadCanvasPng(canvas, filename) {
+  const blob = await canvasToPngBlob(canvas);
+  downloadBlob(blob, filename);
+  return blob.size;
 }
 
 function renderGridToCanvas(cellSize, options = {}) {
@@ -802,6 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const downloadLegendBtn = document.getElementById('downloadLegend');
   const downloadPngBtn = document.getElementById('downloadPng');
   const downloadGridImageBtn = document.getElementById('downloadGridImage');
+  const shareGridImageBtn = document.getElementById('shareGridImage');
   const newProjectBtn = document.getElementById('newProjectBtn');
   const legendEl = document.getElementById('legend');
   const gridEl = document.getElementById('grid');
@@ -1562,7 +1571,6 @@ document.addEventListener('DOMContentLoaded', () => {
           colorCount: currentResult.numColors,
           durationBucket: durationBucket(performance.now() - conversionStartedAt)
         }, project.id);
-        showIntentPrompt(project.id);
         
         // Highlight the newly added project in sidebar
         document.querySelectorAll('.project-item').forEach(el => {
@@ -1638,19 +1646,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  downloadGridImageBtn.addEventListener('click', async () => {
+  function gridImageFileMeta() {
     const cellSize = parseInt(cellSizeInput.value);
-    const canvas = renderGridToCanvas(cellSize);
-    if (!canvas) return;
-    
     const height = currentResult.grid.length;
     const width = currentResult.grid[0].length;
     const colors = currentResult.numColors;
+    return {
+      canvas: renderGridToCanvas(cellSize),
+      filename: `needlepoint_grid_${height}x${width}_${colors}colors_${cellSize}px.png`
+    };
+  }
+
+  downloadGridImageBtn.addEventListener('click', async () => {
+    const image = gridImageFileMeta();
+    if (!image.canvas) return;
     try {
-      await downloadCanvasPng(canvas, `needlepoint_grid_${height}x${width}_${colors}colors_${cellSize}px.png`);
+      await downloadCanvasPng(image.canvas, image.filename);
       recordExport('grid_png');
     } catch (error) {
       showStatus(error.message, 'error');
+    }
+  });
+
+  if (typeof navigator.share === 'function') {
+    shareGridImageBtn.hidden = false;
+  }
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    document.querySelector('.download-more')?.removeAttribute('open');
+  }
+  shareGridImageBtn.addEventListener('click', async () => {
+    const image = gridImageFileMeta();
+    if (!image.canvas) return;
+    try {
+      const blob = await canvasToPngBlob(image.canvas);
+      const file = new File([blob], image.filename, { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Needlepoint pattern',
+          text: 'A stitch chart from Needlepoint Maker'
+        });
+        recordExport('grid_share');
+        return;
+      }
+      await downloadCanvasPng(image.canvas, image.filename);
+      recordExport('grid_png');
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+      showStatus(error.message || 'Could not share the pattern.', 'error');
     }
   });
   
@@ -2203,6 +2246,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   }
 
+  const INTENT_ASKED_KEY = 'needlepoint_intent_prompt_asked';
+
   function promptStateKey(prompt, projectId) {
     return `needlepoint_${prompt}_${projectId || 'none'}`;
   }
@@ -2210,6 +2255,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function promptStillOpen(prompt, projectId) {
     return !sessionStorage.getItem(promptStateKey(`${prompt}_answered`, projectId))
       && !sessionStorage.getItem(promptStateKey(`${prompt}_dismissed`, projectId));
+  }
+
+  function intentAlreadyAsked() {
+    return localStorage.getItem(INTENT_ASKED_KEY) === 'true';
+  }
+
+  function markIntentAsked() {
+    localStorage.setItem(INTENT_ASKED_KEY, 'true');
   }
 
   function syncResearchDock() {
@@ -2232,10 +2285,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showIntentPrompt(projectId) {
     if (!intentPrompt || !projectId) return;
+    if (intentAlreadyAsked()) return;
     if (!promptStillOpen('intent', projectId)) return;
     if (outcomePrompt?.classList.contains('visible')) return;
     const alreadyVisible = intentPrompt.classList.contains('visible');
     intentPrompt.classList.add('visible');
+    markIntentAsked();
     syncResearchDock();
     if (alreadyVisible) return;
     trackProductEvent(
@@ -2245,7 +2300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
-  async function submitIntent(selectedOption, optionalComment) {
+  async function submitIntent(selectedOption, optionalComment, email) {
     if (!currentProjectId) return;
     const buttons = intentPrompt.querySelectorAll('button');
     buttons.forEach((button) => { button.disabled = true; });
@@ -2253,7 +2308,8 @@ document.addEventListener('DOMContentLoaded', () => {
       projectId: String(currentProjectId),
       promptKey: 'post_conversion_features',
       selectedOption,
-      ...(optionalComment ? { optionalComment } : {})
+      ...(optionalComment ? { optionalComment } : {}),
+      ...(email ? { email } : {})
     };
     const sent = await window.NeedlepointAnalytics?.submitIntent(payload);
     buttons.forEach((button) => { button.disabled = false; });
@@ -2265,7 +2321,10 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.setItem(promptStateKey('intent_answered', currentProjectId), 'true');
     document.getElementById('intentOptions').style.display = 'none';
     document.getElementById('intentOtherForm').classList.remove('visible');
-    status.textContent = 'Thanks. This will help prioritize the next improvement.';
+    document.getElementById('intentNotifyForm').classList.remove('visible');
+    status.textContent = email
+      ? 'Thanks. We will only use that email to tell you when printable patterns are ready.'
+      : 'Thanks. This will help prioritize the next improvement.';
     window.setTimeout(() => {
       intentPrompt.classList.remove('visible');
       syncResearchDock();
@@ -2277,6 +2336,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!promptStillOpen('outcome', currentProjectId)) return;
     const alreadyVisible = outcomePrompt.classList.contains('visible');
     intentPrompt.classList.remove('visible');
+    document.getElementById('outcomePromptTitle').textContent = 'Does this feel ready to stitch?';
+    document.getElementById('outcomeOptions').style.display = '';
+    document.getElementById('outcomeReasons').hidden = true;
+    document.getElementById('outcomeThanks').textContent = '';
     outcomePrompt.classList.add('visible');
     syncResearchDock();
     if (alreadyVisible) return;
@@ -2289,7 +2352,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function recordExport(exportType) {
     trackProductEvent('export_clicked', { exportType }, currentProjectId);
-    showOutcomePrompt();
+    if (promptStillOpen('outcome', currentProjectId)) showOutcomePrompt();
+    else showIntentPrompt(currentProjectId);
   }
 
   function progressBucket() {
@@ -2326,7 +2390,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!button) return;
     if (button.dataset.intent === 'other') {
       document.getElementById('intentOtherForm').classList.add('visible');
+      document.getElementById('intentNotifyForm').classList.remove('visible');
       document.getElementById('intentComment').focus();
+      return;
+    }
+    if (button.dataset.intent === 'printable_pdf') {
+      document.getElementById('intentOptions').style.display = 'none';
+      document.getElementById('intentOtherForm').classList.remove('visible');
+      document.getElementById('intentNotifyForm').classList.add('visible');
+      document.getElementById('intentEmail').focus();
       return;
     }
     void submitIntent(button.dataset.intent);
@@ -2342,6 +2414,19 @@ document.addEventListener('DOMContentLoaded', () => {
     void submitIntent('other', comment);
   });
 
+  document.getElementById('intentNotifyForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const email = document.getElementById('intentEmail').value.trim();
+    if (!email) {
+      document.getElementById('intentEmail').focus();
+      return;
+    }
+    void submitIntent('printable_pdf', undefined, email);
+  });
+  document.getElementById('skipIntentEmailBtn').addEventListener('click', () => {
+    void submitIntent('printable_pdf');
+  });
+
   document.getElementById('dismissIntentBtn').addEventListener('click', () => {
     if (currentProjectId) {
       sessionStorage.setItem(promptStateKey('intent_dismissed', currentProjectId), 'true');
@@ -2355,40 +2440,63 @@ document.addEventListener('DOMContentLoaded', () => {
     syncResearchDock();
   });
 
-  document.getElementById('outcomeOptions').addEventListener('click', (event) => {
-    const button = event.target.closest('[data-outcome]');
-    if (!button || !currentProjectId) return;
-    const response = button.dataset.outcome;
+  function finishOutcomePrompt(response, reason) {
+    if (!currentProjectId) return;
     sessionStorage.setItem(promptStateKey('outcome_answered', currentProjectId), 'true');
     trackProductEvent(
       'outcome_prompt_responded',
-      { promptKey: 'post_export_ready', response },
+      {
+        promptKey: 'post_export_ready',
+        response,
+        ...(reason ? { reason } : {})
+      },
       currentProjectId
     );
     document.getElementById('outcomeOptions').style.display = 'none';
+    document.getElementById('outcomeReasons').hidden = true;
     document.getElementById('outcomeThanks').textContent =
-      response === 'yes' ? 'Great. Happy stitching!' : 'Thanks. Tell us what is missing so we can improve it.';
-    if (response === 'not_yet') window.setTimeout(() => openFeedback('export', 'outcome'), 350);
+      response === 'yes'
+        ? 'Great. Happy stitching!'
+        : 'Thanks. That helps us decide what to fix next.';
     window.setTimeout(() => {
       outcomePrompt.classList.remove('visible');
-      if (currentProjectId && promptStillOpen('intent', currentProjectId)) {
-        showIntentPrompt(currentProjectId);
-      } else {
-        syncResearchDock();
-      }
-    }, response === 'not_yet' ? 200 : 1600);
+      showIntentPrompt(currentProjectId);
+      syncResearchDock();
+    }, 1600);
+  }
+
+  document.getElementById('outcomeOptions').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-outcome]');
+    if (!button || !currentProjectId) return;
+    if (button.dataset.outcome === 'not_yet') {
+      document.getElementById('outcomeOptions').style.display = 'none';
+      document.getElementById('outcomePromptTitle').textContent = 'What is getting in the way?';
+      document.getElementById('outcomeReasons').hidden = false;
+      return;
+    }
+    finishOutcomePrompt('yes');
+  });
+
+  document.getElementById('outcomeReasons').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-reason]');
+    if (!button || !currentProjectId) return;
+    finishOutcomePrompt('not_yet', button.dataset.reason);
   });
 
   document.getElementById('dismissOutcomeBtn').addEventListener('click', () => {
     if (currentProjectId) {
       sessionStorage.setItem(promptStateKey('outcome_dismissed', currentProjectId), 'true');
+      if (!document.getElementById('outcomeReasons').hidden) {
+        trackProductEvent(
+          'outcome_prompt_responded',
+          { promptKey: 'post_export_ready', response: 'not_yet' },
+          currentProjectId
+        );
+      }
     }
     outcomePrompt.classList.remove('visible');
-    if (currentProjectId && promptStillOpen('intent', currentProjectId)) {
-      showIntentPrompt(currentProjectId);
-    } else {
-      syncResearchDock();
-    }
+    showIntentPrompt(currentProjectId);
+    syncResearchDock();
   });
 
   document.getElementById('feedbackBtn').addEventListener('click', () => {

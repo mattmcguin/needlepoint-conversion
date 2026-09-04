@@ -32,7 +32,10 @@ function databaseWithCheck(check: ProductDatabase['check']): ProductDatabase {
       events: [],
       intent: [],
       feedback: [],
-      acquisition: []
+      acquisition: [],
+      exports: [],
+      devices: [],
+      outcomes: []
     })),
     deleteProductDataBefore: vi.fn(async () => 0)
   };

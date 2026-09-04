@@ -59,6 +59,21 @@ describe('Telegram notifications', () => {
     expect(text).not.toContain('Photo and filename remain private');
   });
 
+  it('notes a printable PDF waitlist without including the email', async () => {
+    const text = await sentText((notifier) =>
+      notifier.notifyIntent({
+        anonymousId: 'anonymous-1',
+        promptKey: 'post_conversion_features',
+        selectedOption: 'printable_pdf',
+        email: 'maker@example.com'
+      })
+    );
+
+    expect(text).toContain('They want a printable PDF next.');
+    expect(text).toContain('They asked to be notified about it.');
+    expect(text).not.toContain('maker@example.com');
+  });
+
   it('sends a feature vote as a sentence', async () => {
     const text = await sentText((notifier) =>
       notifier.notifyIntent({
@@ -130,6 +145,27 @@ describe('Telegram notifications', () => {
 
     expect(exportText).toContain('Exported the grid image');
     expect(progressText).toContain('Marked stitch progress at 50–74%');
+  });
+
+  it('includes a readiness blocker without extra identifiers', async () => {
+    const text = await sentText((notifier) =>
+      notifier.notifyAnalyticsEvent({
+        eventId: 'event-4',
+        anonymousId: 'visitor-99',
+        sessionId: 'session-1',
+        eventName: 'outcome_prompt_responded',
+        path: '/',
+        properties: {
+          promptKey: 'post_export_ready',
+          response: 'not_yet',
+          reason: 'hard_to_print'
+        },
+        occurredAt: new Date()
+      })
+    );
+
+    expect(text).toContain('not quite ready');
+    expect(text).toContain('hard to print');
   });
 
   it('does not send image-selection alerts', async () => {

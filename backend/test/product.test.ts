@@ -35,7 +35,10 @@ function createDatabase(): ProductDatabase {
       feedback: [],
       acquisition: [
         { landingPage: '/', sessions: 3, convertedSessions: 2, exportedSessions: 1 }
-      ]
+      ],
+      exports: [{ exportType: 'grid_png', count: 1 }],
+      devices: [{ deviceClass: 'phone', sessions: 2 }],
+      outcomes: [{ response: 'yes', reason: null, count: 1 }]
     })),
     deleteProductDataBefore: vi.fn(async () => 0)
   };
@@ -386,5 +389,86 @@ describe('product measurement routes', () => {
     expect(authorized.json().acquisition).toEqual([
       { landingPage: '/', sessions: 3, convertedSessions: 2, exportedSessions: 1 }
     ]);
+    expect(authorized.json().exports).toEqual([{ exportType: 'grid_png', count: 1 }]);
+    expect(authorized.json().devices).toEqual([{ deviceClass: 'phone', sessions: 2 }]);
+    expect(authorized.json().outcomes).toEqual([{ response: 'yes', reason: null, count: 1 }]);
+  });
+
+  it('accepts a shared grid image and a readiness blocker', async () => {
+    const database = createDatabase();
+    const app = buildApp({ config, database, logger: false });
+    apps.push(app);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/events/batch',
+      payload: {
+        anonymousId: randomUUID(),
+        sessionId: randomUUID(),
+        events: [
+          {
+            eventId: randomUUID(),
+            eventName: 'export_clicked',
+            path: '/',
+            properties: { exportType: 'grid_share' },
+            occurredAt: new Date().toISOString()
+          },
+          {
+            eventId: randomUUID(),
+            eventName: 'outcome_prompt_responded',
+            path: '/',
+            properties: {
+              promptKey: 'post_export_ready',
+              response: 'not_yet',
+              reason: 'hard_to_print'
+            },
+            occurredAt: new Date().toISOString()
+          }
+        ]
+      }
+    });
+
+    expect(response.statusCode).toBe(202);
+    expect(database.insertAnalyticsEvents).toHaveBeenCalledWith([
+      expect.objectContaining({
+        eventName: 'export_clicked',
+        properties: { exportType: 'grid_share' }
+      }),
+      expect.objectContaining({
+        eventName: 'outcome_prompt_responded',
+        properties: {
+          promptKey: 'post_export_ready',
+          response: 'not_yet',
+          reason: 'hard_to_print'
+        }
+      })
+    ]);
+  });
+
+  it('stores an optional printable-PDF waitlist email', async () => {
+    const database = createDatabase();
+    const notifier = createNotifier();
+    const app = buildApp({ config, database, notifier, logger: false });
+    apps.push(app);
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v1/intent',
+      payload: {
+        anonymousId: randomUUID(),
+        promptKey: 'post_conversion_features',
+        selectedOption: 'printable_pdf',
+        email: 'maker@example.com',
+        website: ''
+      }
+    });
+
+    expect(response.statusCode).toBe(202);
+    expect(database.insertIntent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectedOption: 'printable_pdf',
+        email: 'maker@example.com'
+      })
+    );
   });
 });

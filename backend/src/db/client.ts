@@ -23,6 +23,7 @@ export interface IntentRecord {
   promptKey: string;
   selectedOption: string;
   optionalComment?: string | undefined;
+  email?: string | undefined;
 }
 
 export interface FeedbackRecord {
@@ -47,6 +48,9 @@ export interface ProductSummary {
     convertedSessions: number;
     exportedSessions: number;
   }>;
+  exports: Array<{ exportType: string; count: number }>;
+  devices: Array<{ deviceClass: string; sessions: number }>;
+  outcomes: Array<{ response: string; reason: string | null; count: number }>;
 }
 
 export interface VisitorActivity {
@@ -95,7 +99,14 @@ export function createDatabase(databaseUrl: string) {
         .onConflictDoNothing({ target: schema.analyticsEvents.eventId });
     },
     async insertIntent(intent: IntentRecord): Promise<void> {
-      await client.insert(schema.intentResponses).values(intent);
+      await client.insert(schema.intentResponses).values({
+        anonymousId: intent.anonymousId,
+        promptKey: intent.promptKey,
+        selectedOption: intent.selectedOption,
+        ...(intent.projectId ? { projectId: intent.projectId } : {}),
+        ...(intent.optionalComment ? { optionalComment: intent.optionalComment } : {}),
+        ...(intent.email ? { email: intent.email } : {})
+      });
     },
     async insertFeedback(feedback: FeedbackRecord): Promise<void> {
       await client.insert(schema.feedback).values(feedback);
@@ -125,7 +136,7 @@ export function createDatabase(databaseUrl: string) {
       };
     },
     async getProductSummary(since: Date): Promise<ProductSummary> {
-      const [eventsResult, intentResult, feedbackResult, acquisitionResult] = await Promise.all([
+      const [eventsResult, intentResult, feedbackResult, acquisitionResult, exportsResult, devicesResult, outcomesResult] = await Promise.all([
         pool.query<{ name: string; count: string }>(
           `select event_name as name, count(*)::text as count
            from analytics_events
@@ -186,6 +197,40 @@ export function createDatabase(databaseUrl: string) {
            group by first_page_views.landing_page
            order by count(*) desc, first_page_views.landing_page`,
           [since]
+        ),
+        pool.query<{ export_type: string; count: string }>(
+          `select coalesce(properties->>'exportType', 'unknown') as export_type, count(*)::text as count
+           from analytics_events
+           where created_at >= $1 and event_name = 'export_clicked'
+           group by 1
+           order by count(*) desc, export_type`,
+          [since]
+        ),
+        pool.query<{ device_class: string; sessions: string }>(
+          `with first_page_views as (
+             select distinct on (session_id)
+               session_id,
+               coalesce(nullif(properties->>'deviceClass', ''), 'unknown') as device_class
+             from analytics_events
+             where created_at >= $1 and event_name = 'page_view'
+             order by session_id, occurred_at, created_at
+           )
+           select device_class, count(*)::text as sessions
+           from first_page_views
+           group by 1
+           order by count(*) desc, device_class`,
+          [since]
+        ),
+        pool.query<{ response: string; reason: string | null; count: string }>(
+          `select
+             coalesce(properties->>'response', 'unknown') as response,
+             properties->>'reason' as reason,
+             count(*)::text as count
+           from analytics_events
+           where created_at >= $1 and event_name = 'outcome_prompt_responded'
+           group by 1, 2
+           order by count(*) desc, response, reason`,
+          [since]
         )
       ]);
 
@@ -210,6 +255,19 @@ export function createDatabase(databaseUrl: string) {
           sessions: Number(row.sessions),
           convertedSessions: Number(row.converted_sessions),
           exportedSessions: Number(row.exported_sessions)
+        })),
+        exports: exportsResult.rows.map((row) => ({
+          exportType: row.export_type,
+          count: Number(row.count)
+        })),
+        devices: devicesResult.rows.map((row) => ({
+          deviceClass: row.device_class,
+          sessions: Number(row.sessions)
+        })),
+        outcomes: outcomesResult.rows.map((row) => ({
+          response: row.response,
+          reason: row.reason,
+          count: Number(row.count)
         }))
       };
     },

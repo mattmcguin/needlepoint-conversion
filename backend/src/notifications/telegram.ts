@@ -65,7 +65,14 @@ const exportLabels: Record<string, string> = {
   grid_csv: 'grid CSV',
   legend_csv: 'color legend CSV',
   preview_png: 'preview image',
-  grid_png: 'grid image'
+  grid_png: 'grid image',
+  grid_share: 'shared grid image'
+};
+
+const outcomeReasonLabels: Record<string, string> = {
+  hard_to_print: 'hard to print',
+  scattered_colors: 'too many scattered colors',
+  need_thread_names: 'needs real thread names'
 };
 
 const progressLabels: Record<string, string> = {
@@ -153,6 +160,7 @@ function formatIntent(intent: IntentRecord, activity?: VisitorActivity): string 
   return compact([
     `They want ${choice} next.`,
     quoted(intent.optionalComment),
+    intent.email ? 'They asked to be notified about it.' : undefined,
     formatVisitorContext(intent.anonymousId, activity)
   ]);
 }
@@ -184,10 +192,12 @@ function formatSignal(event: AnalyticsEventRecord, activity?: VisitorActivity): 
 
   if (event.eventName === 'outcome_prompt_responded') {
     const ready = event.properties.response === 'yes';
+    const reason = outcomeReasonLabels[String(event.properties.reason || '')];
     return compact([
       ready
         ? 'After exporting they said they are ready to stitch.'
         : 'After exporting they said it is not quite ready.',
+      reason ? `They said it is ${reason}.` : undefined,
       formatVisitorContext(event.anonymousId, activity)
     ]);
   }

@@ -60,7 +60,9 @@ const eventProperties = {
     .strict(),
   project_opened: z.object({ source: z.enum(['sidebar', 'recent']) }).strict(),
   export_clicked: z
-    .object({ exportType: z.enum(['grid_csv', 'legend_csv', 'preview_png', 'grid_png']) })
+    .object({
+      exportType: z.enum(['grid_csv', 'legend_csv', 'preview_png', 'grid_png', 'grid_share'])
+    })
     .strict(),
   progress_marked: z
     .object({
@@ -71,7 +73,11 @@ const eventProperties = {
   intent_prompt_dismissed: z.object({ promptKey: z.literal('post_conversion_features') }).strict(),
   outcome_prompt_viewed: z.object({ promptKey: z.literal('post_export_ready') }).strict(),
   outcome_prompt_responded: z
-    .object({ promptKey: z.literal('post_export_ready'), response: z.enum(['yes', 'not_yet']) })
+    .object({
+      promptKey: z.literal('post_export_ready'),
+      response: z.enum(['yes', 'not_yet']),
+      reason: z.enum(['hard_to_print', 'scattered_colors', 'need_thread_names']).optional()
+    })
     .strict(),
   feedback_opened: z.object({ placement: z.enum(['sidebar', 'intent', 'outcome']) }).strict(),
   palette_color_changed: z.object({ source: z.literal('legend') }).strict()
@@ -113,6 +119,7 @@ const intentSchema = z
       'none'
     ]),
     optionalComment: z.string().trim().max(500).optional(),
+    email: z.email().max(320).optional(),
     website: z.string().max(200).optional()
   })
   .strict();

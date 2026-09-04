@@ -78,7 +78,7 @@
   }
   </script>
   
-  <link rel="stylesheet" href="styles.css?v=20260830.12">
+  <link rel="stylesheet" href="styles.css?v=20260904.1">
 </head>
 <body class="guided-studio">
   <!-- Mobile Menu Toggle -->
@@ -294,11 +294,19 @@
           </div>
 
           <div class="download-section" id="downloadSection">
-            <span>Export pattern</span>
-            <button class="download-btn" id="downloadGrid">Grid CSV</button>
-            <button class="download-btn" id="downloadLegend">Legend CSV</button>
-            <button class="download-btn" id="downloadPng">Preview PNG</button>
-            <button class="download-btn download-primary" id="downloadGridImage">Grid image</button>
+            <span>Take this pattern with you</span>
+            <div class="download-main">
+              <button class="download-btn download-primary" id="downloadGridImage">Save grid image</button>
+              <button class="download-btn download-share" id="shareGridImage" type="button" hidden>Share</button>
+            </div>
+            <details class="download-more" open>
+              <summary>More formats</summary>
+              <div class="download-secondary">
+                <button class="download-btn" id="downloadGrid">Grid CSV</button>
+                <button class="download-btn" id="downloadLegend">Legend CSV</button>
+                <button class="download-btn" id="downloadPng">Preview PNG</button>
+              </div>
+            </details>
           </div>
         </section>
 
@@ -381,7 +389,7 @@
       <button class="dialog-close" aria-label="Close privacy settings">×</button>
     </form>
     <h2 id="privacyTitle">Privacy &amp; analytics</h2>
-    <p>Your photo, filename, pattern, and saved projects stay in this browser. We collect anonymous product events, such as creating or exporting a pattern, to understand what works.</p>
+    <p>Your photo, filename, pattern, and saved projects stay in this browser. We collect anonymous product events, such as creating or exporting a pattern, to understand what works. If you ask to be notified about a printable PDF, that email is stored only for that notice.</p>
     <label class="analytics-toggle"><input id="analyticsEnabled" type="checkbox"> Share anonymous usage analytics</label>
     <p class="privacy-note">Turning this off clears the anonymous identifier from this browser. Feedback is only sent when you choose to submit it.</p>
   </dialog>
@@ -395,14 +403,20 @@
           <button type="button" data-intent="printable_pdf">A printable PDF</button>
           <button type="button" data-intent="thread_matching">Real thread colors</button>
           <button type="button" data-intent="pattern_cleanup">Cleaner patterns</button>
-          <button type="button" data-intent="cloud_sync">Projects on every device</button>
-          <button type="button" data-intent="physical_canvas">A painted canvas</button>
           <button type="button" data-intent="other">Something else</button>
         </div>
         <form class="intent-other-form" id="intentOtherForm">
           <label for="intentComment">What do you have in mind?</label>
           <textarea id="intentComment" maxlength="500" rows="2"></textarea>
           <button type="submit">Send answer</button>
+        </form>
+        <form class="intent-other-form" id="intentNotifyForm">
+          <label for="intentEmail">Want a note when printable patterns are ready?</label>
+          <input id="intentEmail" type="email" maxlength="320" autocomplete="email" placeholder="Email (optional)">
+          <div class="intent-notify-actions">
+            <button type="submit">Notify me</button>
+            <button type="button" id="skipIntentEmailBtn">No thanks</button>
+          </div>
         </form>
         <p class="research-thanks" id="intentThanks" role="status"></p>
       </div>
@@ -416,6 +430,11 @@
           <button type="button" data-outcome="yes">Yes, I'm ready</button>
           <button type="button" data-outcome="not_yet">Not quite</button>
         </div>
+        <div class="intent-options" id="outcomeReasons" hidden>
+          <button type="button" data-reason="hard_to_print">Hard to print</button>
+          <button type="button" data-reason="scattered_colors">Too many scattered colors</button>
+          <button type="button" data-reason="need_thread_names">I need real thread names</button>
+        </div>
         <p class="research-thanks" id="outcomeThanks" role="status"></p>
       </div>
       <button class="research-prompt-dismiss" id="dismissOutcomeBtn" type="button">Not now</button>
@@ -423,7 +442,7 @@
   </aside>
 
   <script src="analytics.js?v=20260830.3"></script>
-  <script src="app.js?v=20260830.6"></script>
+  <script src="app.js?v=20260904.1"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
