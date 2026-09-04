@@ -1671,9 +1671,22 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof navigator.share === 'function') {
     shareGridImageBtn.hidden = false;
   }
-  if (window.matchMedia('(max-width: 768px)').matches) {
-    document.querySelector('.download-more')?.removeAttribute('open');
-  }
+  const downloadMoreToggle = document.getElementById('downloadMoreToggle');
+  const downloadSecondary = document.getElementById('downloadSecondary');
+  const showExtraFormats = () => {
+    const expand = window.matchMedia('(max-width: 768px)').matches
+      ? downloadMoreToggle.getAttribute('aria-expanded') === 'true'
+      : true;
+    downloadSecondary.hidden = !expand;
+  };
+  downloadMoreToggle.addEventListener('click', () => {
+    const next = downloadMoreToggle.getAttribute('aria-expanded') !== 'true';
+    downloadMoreToggle.setAttribute('aria-expanded', String(next));
+    downloadMoreToggle.textContent = next ? 'Hide extra formats' : 'CSV and preview';
+    showExtraFormats();
+  });
+  window.matchMedia('(max-width: 768px)').addEventListener('change', showExtraFormats);
+  showExtraFormats();
   shareGridImageBtn.addEventListener('click', async () => {
     const image = gridImageFileMeta();
     if (!image.canvas) return;

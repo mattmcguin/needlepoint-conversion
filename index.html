@@ -78,7 +78,7 @@
   }
   </script>
   
-  <link rel="stylesheet" href="styles.css?v=20260904.1">
+  <link rel="stylesheet" href="styles.css?v=20260904.2">
 </head>
 <body class="guided-studio">
   <!-- Mobile Menu Toggle -->
@@ -294,19 +294,22 @@
           </div>
 
           <div class="download-section" id="downloadSection">
-            <span>Take this pattern with you</span>
+            <div class="download-copy">
+              <span>Take this pattern with you</span>
+              <p>Save the numbered stitch chart as a PNG. Spreadsheet and preview files are optional.</p>
+            </div>
             <div class="download-main">
-              <button class="download-btn download-primary" id="downloadGridImage">Save grid image</button>
+              <button class="download-btn download-primary" id="downloadGridImage">Save stitch chart</button>
               <button class="download-btn download-share" id="shareGridImage" type="button" hidden>Share</button>
             </div>
-            <details class="download-more" open>
-              <summary>More formats</summary>
-              <div class="download-secondary">
-                <button class="download-btn" id="downloadGrid">Grid CSV</button>
-                <button class="download-btn" id="downloadLegend">Legend CSV</button>
-                <button class="download-btn" id="downloadPng">Preview PNG</button>
-              </div>
-            </details>
+            <button class="download-more-toggle" id="downloadMoreToggle" type="button" aria-expanded="false" aria-controls="downloadSecondary">
+              CSV and preview
+            </button>
+            <div class="download-secondary" id="downloadSecondary" hidden>
+              <button class="download-btn" id="downloadGrid">Grid CSV</button>
+              <button class="download-btn" id="downloadLegend">Legend CSV</button>
+              <button class="download-btn" id="downloadPng">Preview PNG</button>
+            </div>
           </div>
         </section>
 
@@ -442,7 +445,7 @@
   </aside>
 
   <script src="analytics.js?v=20260830.3"></script>
-  <script src="app.js?v=20260904.1"></script>
+  <script src="app.js?v=20260904.2"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
